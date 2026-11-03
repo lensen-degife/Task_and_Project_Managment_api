@@ -22,3 +22,10 @@ coverage/
 
 # Operating system
 .DS_Store
+/src/generated/prisma
+
+# AI tooling and local editor state
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
