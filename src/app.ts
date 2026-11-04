@@ -1,6 +1,7 @@
 import { prisma } from "./config/prisma";
 import express from "express";
 import cors from "cors";
+import authRoutes from './modules/auth/auth.routes'
 
 const app = express();
 
@@ -29,5 +30,7 @@ app.get("/health/db", async (req, res) => {
     });
   }
 });
+
+app.use('/api/auth', authRoutes);
 
 export default app;
