@@ -19,7 +19,13 @@ export const register = async (req: Request, res:Response) =>{
             message: 'user created successfully',
             data: user
         })
-    } catch(error){
+    } catch(error: any){
+        if(error.message == 'email already exists'){
+            return res.status(409).json({
+                success: false,
+                message: error.message
+            });
+        }
         return res.status(500).json({
             success: false,
             message: 'internal server error'
