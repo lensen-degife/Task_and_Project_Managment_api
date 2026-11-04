@@ -12,7 +12,8 @@ export const register = async (req: Request, res:Response) =>{
                 errors: validation.error.issues
             })
         }
-        const user = await  registerUser(validation.data);
+        const user = await registerUser(validation.data);
+
         return res.status(201).json({
             success: true,
             message: 'user created successfully',
@@ -30,6 +31,7 @@ export const register = async (req: Request, res:Response) =>{
 export const login = async(req: Request, res: Response) => {
     try{
         const validation = loginSchema.safeParse(req.body);
+
         if(!validation.success){
             return res.status(400).json({
                 success: false,
@@ -37,16 +39,19 @@ export const login = async(req: Request, res: Response) => {
                 errors: validation.error.issues
             })
         }
+
         const user = await loginUser(validation.data);
+
          return res.status(200).json({
             success: true,
             message: 'login succeded',
             data: user
-         })
+         });
     } catch(e){
+        console.error(e);
         return res.status(500).json({
             success: false,
-            message: 'login failed'
+            message: 'login failed',
         })
     }
 }

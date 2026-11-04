@@ -13,6 +13,7 @@ interface LoginInput{
 }
 
 export const registerUser = async(data: RegisterInput) => {
+    
     const existingUser = await prisma.user.findUnique({
         where: {
             email: data.email
@@ -20,12 +21,12 @@ export const registerUser = async(data: RegisterInput) => {
     });
 
     if(existingUser){
-            throw new Error('user already exists');
+            throw new Error('email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
-    const user = prisma.user.create({
+    const user = await prisma.user.create({
         data:{
             name: data.name,
             email: data.email,
