@@ -34,3 +34,46 @@ export const createProject = async (data: CreateProjectInput, userId: string)=>{
     });
     return project;
 }
+
+
+export const listProjects = async(userId: string) => {
+    return await prisma.project.findMany({
+        where: {
+            members: {
+                some: {
+                    userId: userId
+                }
+            }
+
+        },
+        include:
+        {
+            owner: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true
+                }
+
+            },
+            members:{
+                where: {
+                    userId: userId
+                },
+                select: {
+                    role: true
+                }
+            },
+
+            _count: {
+                select: {
+                    members: true,
+                    tasks: true
+                }
+            }
+        },
+        orderBy:{
+            createdAt: "desc"
+        }
+    })
+}

@@ -1,6 +1,6 @@
 import {Request, Response} from 'express'
 import {createProjectSchema} from './projects.validation'
-import {createProject} from './projects.service'
+import {createProject, listProjects} from './projects.service'
 
 export const createProjectController = async(req: Request, res: Response) =>{
 
@@ -30,4 +30,22 @@ export const createProjectController = async(req: Request, res: Response) =>{
         })
     }
 
+}
+
+export const listProjectsController = async (req: Request, res: Response) => {
+    try{
+
+        const projects = await listProjects(req.user!.userId);
+        return res.status(200).json({
+            success: true,
+            count: projects.length,
+            data: projects
+        })
+
+    }catch(e){
+        return res.status(500).json({
+            success: false,
+            message: 'internal server error'
+        })
+    }
 }
