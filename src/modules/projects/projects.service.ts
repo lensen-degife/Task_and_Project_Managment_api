@@ -77,3 +77,47 @@ export const listProjects = async(userId: string) => {
         }
     })
 }
+
+export const getProjectById = async(projectId: string, userId: string) => {
+    return await prisma.project.findFirst({
+        where: {
+            id: projectId,
+            members:{
+                some: {
+                    userId: userId
+                }
+            }
+        },
+        include:{
+            owner: {
+                select:{
+                    id: true,
+                    name: true,
+                    email: true
+                }
+            },
+        members:{
+            include: {
+
+                user: {
+                    select: {
+                    id: true,
+                    name: true,
+                    email: true
+                    }
+                }
+                
+            }
+
+        },
+        tasks: true,
+        _count:{
+            select: {
+                members: true,
+                tasks: true
+            }
+        }
+        },
+    
+    })
+}

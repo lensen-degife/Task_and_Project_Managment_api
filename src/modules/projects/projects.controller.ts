@@ -1,6 +1,6 @@
 import {Request, Response} from 'express'
 import {createProjectSchema} from './projects.validation'
-import {createProject, listProjects} from './projects.service'
+import {createProject, listProjects, getProjectById} from './projects.service'
 
 export const createProjectController = async(req: Request, res: Response) =>{
 
@@ -43,6 +43,29 @@ export const listProjectsController = async (req: Request, res: Response) => {
         })
 
     }catch(e){
+        return res.status(500).json({
+            success: false,
+            message: 'internal server error'
+        })
+    }
+}
+
+export const getProjectByIdController = async(req: Request<{projectId: string}>, res:Response) => {
+    
+    try{
+        const project = await getProjectById(req.params.projectId, req.user!.userId);
+        if(!project){
+            return res.status(404).json({
+                success: false,
+                message: 'project not found'
+            });
+        
+        }
+        return res.status(200).json({
+            success: true,
+            data: project
+        });
+    } catch(e){
         return res.status(500).json({
             success: false,
             message: 'internal server error'
