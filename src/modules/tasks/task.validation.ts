@@ -30,3 +30,32 @@ export const getTasksSchema = z.object({
 
     limit: z.coerce.number().int().min(1).max(100).default(10),
 });
+
+export const updateTaskSchema = z.object({
+    title: z.string().min(2).max(150).optional(),
+
+    description: z.string().max(2000).nullable().optional(),
+
+    status: z.enum([
+        "TODO",
+        "IN_PROGRESS",
+        "REVIEW",
+        "DONE",
+    ]).optional(),
+
+    priority: z.enum([
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "URGENT",
+    ]).optional(),
+
+    assigneeId: z.string().uuid().nullable().optional(),
+
+    dueDate: z.coerce.date().nullable().optional(),
+}).refine(
+    (data) => Object.keys(data).length > 0,
+    {
+        message: "At least one field must be provided",
+    }
+);

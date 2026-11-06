@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import { createTaskSchema, getTasksSchema } from './task.validation'
-import { createTask, getTasks } from './task.service'
+import { createTaskSchema, getTasksSchema, updateTaskSchema } from './task.validation'
+import { createTask, getTasks, updateTask } from './task.service'
 
 export const createTaskController = async (req: Request<{ projectId: string }>, res: Response) => {
 
@@ -35,7 +35,7 @@ export const createTaskController = async (req: Request<{ projectId: string }>, 
             data: task.task,
         });
 
-    } catch(error) {
+    } catch (error) {
         console.error(error);
         return res.status(500).json({
             success: false,
@@ -44,18 +44,18 @@ export const createTaskController = async (req: Request<{ projectId: string }>, 
     }
 }
 
-export const getTasksController = async (req: Request<{projectId: string}>, res: Response) => {
-    try{
+export const getTasksController = async (req: Request<{ projectId: string }>, res: Response) => {
+    try {
 
         const validation = getTasksSchema.safeParse(req.query);
-        if(!validation.success){
+        if (!validation.success) {
             return res.status(400).json({
                 success: false,
                 message: "invalid query parameters"
             })
         }
         const result = await getTasks(req.params.projectId, req.user!.userId, validation.data);
-        if(!result){
+        if (!result) {
             return res.status(403).json({
                 success: false,
                 message: "you are not a member of this project"
@@ -66,7 +66,63 @@ export const getTasksController = async (req: Request<{projectId: string}>, res:
             data: result.task,
             pagination: result.pagination
         })
-    } catch(e){
+    } catch (e) {
+        return res.status(500).json({
+            success: false,
+            message: 'internal server error'
+        })
+    }
+}
+
+export const updateTaskController = async (req: Request<{projectId: string, taskId: string}>, res: Response)=>{
+    try {
+
+        const validation = await updateTaskSchema.safeParse(req.body);
+
+        if (!validation.success) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation failed",
+                errors: validation.error.issues,
+            });
+        }
+
+        const result = await updateTask(
+            req.params.projectId,
+            req.params.taskId,
+            req.user!.userId,
+            validation.data
+        );
+
+        if ("error" in result) {
+            if (result.error === "NOT_PROJECT_MEMBER") {
+                return res.status(403).json({
+                    success: false,
+                    message: "You are not a member of this project",
+                });
+            }
+
+            if (result.error === "TASK_NOT_FOUND") {
+                return res.status(404).json({
+                    success: false,
+                    message: "Task not found",
+                });
+            }
+
+            return res.status(400).json({
+                success: false,
+                message: "Assigned user is not a project member",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Task updated successfully",
+            data: result.task,
+        });
+
+    } catch (e) {
+        console.error(e);
         return res.status(500).json({
             success: false,
             message: 'internal server error'

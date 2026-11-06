@@ -17,6 +17,14 @@ interface getTasksFilters {
     limit: number;
 
 }
+interface updateTaskInput {
+    title?: string;
+    description?: string | null;
+    status?: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
+    priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+    assigneeId?: string | null;
+    dueDate?: Date | null;
+}
 export const createTask = async (projectId: string, userId: string, data: CreateTaskInput) => {
 
     const membership = await prisma.projectMember.findUnique({
@@ -132,4 +140,69 @@ export const getTasks = async (projectId: string, userId: string, filters: getTa
             totalPages: Math.ceil(total / filters.limit),
         },
     }
+}
+
+export const updateTask = async (projectId: string, taskId: string, userId: string, data: updateTaskInput) => {
+
+    const membership = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId,
+                projectId
+            }
+        }
+    })
+    if (!membership) {
+        return {
+            error: "NOT_PROJECT_MEMBER" as const,
+        }
+    }
+    const existingProject = await prisma.task.findFirst({
+        where: {
+            id: taskId,
+            projectId
+
+        }
+    })
+    if (!existingProject) {
+        return {
+            error: "TASK_NOT_FOUND" as const,
+        }
+    }
+    if (data.assigneeId) {
+        const assigneeMembership = await prisma.projectMember.findUnique({
+            where: {
+                userId_projectId: {
+                    userId: data.assigneeId,
+                    projectId,
+                },
+            },
+        });
+
+        if (!assigneeMembership) {
+            return {
+                error: "ASSIGNEE_NOT_PROJECT_MEMBER" as const,
+            };
+        }
+    }
+
+    const updatedTask = await prisma.task.update({
+        where: {
+            id: taskId,
+        },
+        data,
+        include: {
+            assignee: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
+        },
+    });
+
+    return {
+        task: updatedTask,
+    };
 }
