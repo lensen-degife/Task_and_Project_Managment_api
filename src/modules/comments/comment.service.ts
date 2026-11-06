@@ -100,3 +100,126 @@ export const getComments = async (projectId: string, taskId: string, userId: str
     })
     return { comments };
 }
+
+export const updateComment = async (
+    projectId: string,
+    taskId: string,
+    commentId: string,
+    userId: string,
+    content: string
+) => {
+    const membership = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId,
+                projectId,
+            },
+        },
+    });
+
+    if (!membership) {
+        return {
+            error: "NOT_PROJECT_MEMBER" as const,
+        };
+    }
+
+    const comment = await prisma.comment.findFirst({
+        where: {
+            id: commentId,
+            taskId,
+            task: {
+                projectId,
+            },
+        },
+    });
+
+    if (!comment) {
+        return {
+            error: "COMMENT_NOT_FOUND" as const,
+        };
+    }
+
+    if (comment.authorId !== userId) {
+        return {
+            error: "NOT_COMMENT_AUTHOR" as const,
+        };
+    }
+
+    const updatedComment = await prisma.comment.update({
+        where: {
+            id: commentId,
+        },
+        data: {
+            content,
+        },
+        include: {
+            author: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
+        },
+    });
+
+    return {
+        comment: updatedComment,
+    };
+};
+
+export const deleteComment = async (
+    projectId: string,
+    taskId: string,
+    commentId: string,
+    userId: string
+) => {
+    const membership = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId,
+                projectId,
+            },
+        },
+    });
+
+    if (!membership) {
+        return {
+            error: "NOT_PROJECT_MEMBER" as const,
+        };
+    }
+
+    const comment = await prisma.comment.findFirst({
+        where: {
+            id: commentId,
+            taskId,
+            task: {
+                projectId,
+            },
+        },
+    });
+
+    if (!comment) {
+        return {
+            error: "COMMENT_NOT_FOUND" as const,
+        };
+    }
+
+    if (comment.authorId !== userId) {
+        return {
+            error: "NOT_COMMENT_AUTHOR" as const,
+        };
+    }
+
+    await prisma.comment.delete({
+        where: {
+            id: commentId,
+        },
+    });
+
+    return {
+        success: true,
+    };
+};
+
+
