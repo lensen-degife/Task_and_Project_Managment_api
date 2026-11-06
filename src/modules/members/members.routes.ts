@@ -1,11 +1,12 @@
 import {Router} from 'express';
 import {authenticate} from '../../middleware/auth.middleware';
-import {addProjectMemberController} from './members.controller'
+import {addProjectMemberController, getProjectMembersController} from './members.controller'
 
 const router = Router({mergeParams: true});
 
 router.use(authenticate);
 
-router.post('/members', addProjectMemberController)
+router.post('/members', addProjectMemberController);
+router.get('/members', getProjectMembersController);
 
 export default router;

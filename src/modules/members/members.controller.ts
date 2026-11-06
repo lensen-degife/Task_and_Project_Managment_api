@@ -1,6 +1,6 @@
 import {addMemberSchema} from './members.validation';
 import {Request, Response} from 'express';
-import {addProjectMember} from './members.service'
+import {addProjectMember, getProjectMembers} from './members.service'
 
 export const addProjectMemberController = async (
   req: Request<{projectId: string}>,
@@ -63,6 +63,45 @@ export const addProjectMemberController = async (
     });
   } catch (error) {
     console.error("Add project member error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getProjectMembersController = async (
+  req: Request<{projectId: string}>,
+  res: Response
+) => {
+  try {
+    const result = await getProjectMembers(
+      req.params.projectId,
+      req.user!.userId
+    );
+
+    if ("error" in result) {
+      if (result.error === "PROJECT_NOT_FOUND") {
+        return res.status(404).json({
+          success: false,
+          message: "Project not found",
+        });
+      }
+
+      return res.status(403).json({
+        success: false,
+        message: "You are not a member of this project",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Project members retrieved successfully",
+      data: result.members,
+    });
+  } catch (error) {
+    console.error("Get project members error:", error);
 
     return res.status(500).json({
       success: false,
