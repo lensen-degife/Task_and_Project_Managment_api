@@ -117,3 +117,72 @@ export const getProjectMembers = async (
 
     return { members };
 };
+
+export const updateProjectMemberRole = async (
+    projectId: string,
+    requesterId: string,
+    memberId: string,
+    role: "ADMIN" | "MEMBER"
+) => {
+    const project = await prisma.project.findUnique({
+        where: { id: projectId },
+    });
+
+    if (!project) {
+        return { error: "PROJECT_NOT_FOUND" as const };
+    }
+
+    const requester = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId: requesterId,
+                projectId,
+            },
+        },
+    });
+
+    if (!requester) {
+        return { error: "NOT_PROJECT_MEMBER" as const };
+    }
+
+    if (requester.role !== "OWNER") {
+        return { error: "INSUFFICIENT_PERMISSION" as const };
+    }
+
+    const targetMember = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId: memberId,
+                projectId,
+            },
+        },
+    });
+
+    if (!targetMember) {
+        return { error: "MEMBER_NOT_FOUND" as const };
+    }
+
+    if (targetMember.role === "OWNER") {
+        return { error: "CANNOT_CHANGE_OWNER_ROLE" as const };
+    }
+    const updatedMember = await prisma.projectMember.update({
+        where: {
+            userId_projectId: {
+                userId: memberId,
+                projectId,
+            },
+        },
+        data: { role },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
+        },
+    });
+
+    return { membership: updatedMember };
+};

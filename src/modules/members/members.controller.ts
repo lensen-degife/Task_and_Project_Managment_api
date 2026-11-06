@@ -1,6 +1,6 @@
-import {addMemberSchema} from './members.validation';
+import {addMemberSchema, updateMemberRoleSchema} from './members.validation';
 import {Request, Response} from 'express';
-import {addProjectMember, getProjectMembers} from './members.service'
+import {addProjectMember, getProjectMembers, updateProjectMemberRole} from './members.service'
 
 export const addProjectMemberController = async (
   req: Request<{projectId: string}>,
@@ -102,6 +102,76 @@ export const getProjectMembersController = async (
     });
   } catch (error) {
     console.error("Get project members error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const updateProjectMemberRoleController = async (
+  req: Request<{projectId: string, memberId: string}>,
+  res: Response
+) => {
+  try {
+    const validation = updateMemberRoleSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        message: validation.error.issues[0].message,
+      });
+    }
+
+    const result = await updateProjectMemberRole(
+      req.params.projectId,
+      req.user!.userId,
+      req.params.memberId,
+      validation.data.role
+    );
+
+    if ("error" in result) {
+      switch (result.error) {
+        case "PROJECT_NOT_FOUND":
+          return res.status(404).json({
+            success: false,
+            message: "Project not found",
+          });
+
+        case "NOT_PROJECT_MEMBER":
+          return res.status(403).json({
+            success: false,
+            message: "You are not a member of this project",
+          });
+
+        case "INSUFFICIENT_PERMISSION":
+          return res.status(403).json({
+            success: false,
+            message: "Only the project owner can change member roles",
+          });
+
+        case "MEMBER_NOT_FOUND":
+          return res.status(404).json({
+            success: false,
+            message: "Project member not found",
+          });
+
+        case "CANNOT_CHANGE_OWNER_ROLE":
+          return res.status(403).json({
+            success: false,
+            message: "The owner's role cannot be changed here",
+          });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Member role updated successfully",
+      data: result.membership,
+    });
+  } catch (error) {
+    console.error("Update member role error:", error);
 
     return res.status(500).json({
       success: false,
