@@ -206,3 +206,48 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
         task: updatedTask,
     };
 }
+
+export const deleteTask = async (projectId: string, taskId: string, userId: string) => {
+    const membership = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId,
+                projectId
+            }
+        }
+    })
+    if (!membership) {
+        return {
+            error: "NOT_PROJECT_MEMBER" as const,
+        }
+
+    }
+    if (membership.role !== "OWNER" &&
+        membership.role !== "ADMIN") {
+        return {
+            error: "INSUFFICIENT_PERMISSION" as const,
+        };
+    }
+    const task = await prisma.task.findFirst({
+        where: {
+            id: taskId,
+            projectId,
+        },
+    });
+
+    if (!task) {
+        return {
+            error: "TASK_NOT_FOUND" as const,
+        };
+    }
+
+    await prisma.task.delete({
+        where: {
+            id: taskId,
+        },
+    });
+
+    return {
+        success: true,
+    };
+};

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { createTaskSchema, getTasksSchema, updateTaskSchema } from './task.validation'
-import { createTask, getTasks, updateTask } from './task.service'
+import { createTask, getTasks, updateTask , deleteTask} from './task.service'
 
 export const createTaskController = async (req: Request<{ projectId: string }>, res: Response) => {
 
@@ -74,7 +74,7 @@ export const getTasksController = async (req: Request<{ projectId: string }>, re
     }
 }
 
-export const updateTaskController = async (req: Request<{projectId: string, taskId: string}>, res: Response)=>{
+export const updateTaskController = async (req: Request<{ projectId: string, taskId: string }>, res: Response) => {
     try {
 
         const validation = await updateTaskSchema.safeParse(req.body);
@@ -127,5 +127,49 @@ export const updateTaskController = async (req: Request<{projectId: string, task
             success: false,
             message: 'internal server error'
         })
+    }
+}
+
+export const deleteTaskController = async (req: Request<{projectId: string, taskId: string}>, res: Response) => {
+    try {
+        const result = await deleteTask(
+            req.params.projectId,
+            req.params.taskId,
+            req.user!.userId,
+        )
+
+
+        if ("error" in result) {
+            if (result.error === "NOT_PROJECT_MEMBER") {
+                return res.status(403).json({
+                    success: false,
+                    message: "You are not a member of this project",
+                });
+            }
+
+            if (result.error === "INSUFFICIENT_PERMISSION") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Only project owners and admins can delete tasks",
+                });
+            }
+
+            return res.status(404).json({
+                success: false,
+                message: "Task not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Task deleted successfully",
+        });
+    } catch (error) {
+        console.error("Delete task error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
     }
 }
