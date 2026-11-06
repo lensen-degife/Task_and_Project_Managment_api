@@ -4,6 +4,7 @@ import cors from "cors";
 import authRoutes from './modules/auth/auth.routes'
 import projectRoutes from './modules/projects/projects.routes'
 import taskRoutes from './modules/tasks/task.routes'
+import commentRoutes from './modules/comments/comment.routes'
 
 const app = express();
 
@@ -36,5 +37,6 @@ app.get("/health/db", async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:projectId/tasks', taskRoutes);
+app.use('/api/project/:projectId/tasks/:taskId/comments', commentRoutes);
 
 export default app;
