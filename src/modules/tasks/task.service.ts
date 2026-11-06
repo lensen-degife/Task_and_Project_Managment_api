@@ -8,7 +8,16 @@ interface CreateTaskInput {
     dueDate?: Date | null
 
 }
-export const createTask = async (projectId: string, userId: string, data: CreateTaskInput)=> {
+
+interface getTasksFilters {
+    status?: "TODO" | "IN_PROGRESS" | "REVIEW" | "DONE";
+    priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+    assigneeId?: string;
+    page: number;
+    limit: number;
+
+}
+export const createTask = async (projectId: string, userId: string, data: CreateTaskInput) => {
 
     const membership = await prisma.projectMember.findUnique({
         where: {
@@ -66,3 +75,61 @@ export const createTask = async (projectId: string, userId: string, data: Create
 
     return { task };
 };
+
+export const getTasks = async (projectId: string, userId: string, filters: getTasksFilters) => {
+    const membership = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId,
+                projectId
+            }
+        }
+    })
+    if (!membership) {
+        return null;
+    }
+    const where = {
+        projectId,
+        ...(filters.status && { status: filters.status }),
+        ...(filters.priority && { priority: filters.priority }),
+        ...(filters.assigneeId && { assigneeId: filters.assigneeId })
+
+    };
+    const skip = (filters.page - 1) * filters.limit;
+    const [task, total] = await Promise.all([
+        prisma.task.findMany({
+            where,
+            include: {
+                assignee: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true
+                    }
+                },
+                _count: {
+                    select: {
+                        comments: true,
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+            skip,
+            take: filters.limit
+
+        }),
+        prisma.task.count({ where }),
+    ]);
+
+    return {
+        task,
+        pagination: {
+            total,
+            page: filters.page,
+            limit: filters.limit,
+            totalPages: Math.ceil(total / filters.limit),
+        },
+    }
+}
