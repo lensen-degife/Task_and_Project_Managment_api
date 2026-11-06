@@ -1,12 +1,12 @@
 
-import {prisma} from "../../config/prisma"
+import { prisma } from "../../config/prisma"
 
-interface CreateProjectInput{
+interface CreateProjectInput {
     name: string,
     description?: string
 }
 
-export const createProject = async (data: CreateProjectInput, userId: string)=>{
+export const createProject = async (data: CreateProjectInput, userId: string) => {
 
     const project = await prisma.project.create({
         data: {
@@ -22,7 +22,7 @@ export const createProject = async (data: CreateProjectInput, userId: string)=>{
         },
         include: {
             owner: {
-                select:{
+                select: {
                     id: true,
                     name: true,
                     email: true
@@ -36,7 +36,7 @@ export const createProject = async (data: CreateProjectInput, userId: string)=>{
 }
 
 
-export const listProjects = async(userId: string) => {
+export const listProjects = async (userId: string) => {
     return await prisma.project.findMany({
         where: {
             members: {
@@ -56,7 +56,7 @@ export const listProjects = async(userId: string) => {
                 }
 
             },
-            members:{
+            members: {
                 where: {
                     userId: userId
                 },
@@ -72,52 +72,77 @@ export const listProjects = async(userId: string) => {
                 }
             }
         },
-        orderBy:{
+        orderBy: {
             createdAt: "desc"
         }
     })
 }
 
-export const getProjectById = async(projectId: string, userId: string) => {
+export const getProjectById = async (projectId: string, userId: string) => {
     return await prisma.project.findFirst({
         where: {
             id: projectId,
-            members:{
+            members: {
                 some: {
                     userId: userId
                 }
             }
         },
-        include:{
+        include: {
             owner: {
-                select:{
+                select: {
                     id: true,
                     name: true,
                     email: true
                 }
             },
-        members:{
-            include: {
+            members: {
+                include: {
 
-                user: {
-                    select: {
-                    id: true,
-                    name: true,
-                    email: true
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true
+                        }
                     }
-                }
-                
-            }
 
+                }
+
+            },
+            tasks: true,
+            _count: {
+                select: {
+                    members: true,
+                    tasks: true
+                }
+            }
         },
-        tasks: true,
-        _count:{
-            select: {
-                members: true,
-                tasks: true
+
+    })
+}
+
+export const updateProject = async (projectId: string, userId: string, data: {
+    name?: string,
+    description?: string | null
+}) => {
+    const membership = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId:{
+                userId, 
+                projectId
             }
         }
-        },
-    
     })
+    if(!membership || membership.role !== 'OWNER' && membership.role !== 'ADMIN'){
+        return null;
+    }
+
+    return await prisma.project.update({
+        where:{
+            id: projectId
+        },
+        data
+    })
+  
 }

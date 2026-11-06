@@ -1,6 +1,6 @@
 import {Request, Response} from 'express'
-import {createProjectSchema} from './projects.validation'
-import {createProject, listProjects, getProjectById} from './projects.service'
+import {createProjectSchema, updateProjectSchema} from './projects.validation'
+import {createProject, listProjects, getProjectById, updateProject} from './projects.service'
 
 export const createProjectController = async(req: Request, res: Response) =>{
 
@@ -69,6 +69,35 @@ export const getProjectByIdController = async(req: Request<{projectId: string}>,
         return res.status(500).json({
             success: false,
             message: 'internal server error'
+        })
+    }
+}
+
+export const updateProjectController = async(req: Request<{projectId: string}>, res: Response) => {
+    try{
+        const validation = updateProjectSchema.safeParse(req.body);
+        if(!validation.success){
+            return res.status(400).json({
+                success: false,
+                messasge: 'validation error'
+            })
+        }
+        const project = await updateProject(req.params.projectId, req.user!.userId, validation.data);
+        if(!project){
+            return res.status(404).json({
+                success: false,
+                message: 'project does not exist'
+            })
+
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'updated successfully',
+        })
+    } catch(e){
+        return res.status(500).json({
+            success: false,
+            message: " internal server error"
         })
     }
 }
