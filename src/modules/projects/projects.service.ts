@@ -146,3 +146,26 @@ export const updateProject = async (projectId: string, userId: string, data: {
     })
   
 }
+
+export const deleteProject = async(projectId: string, userId: string) => {
+
+    const membership = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId,
+                projectId,
+            }
+        }
+
+    })
+    if(!membership || membership.role !== 'OWNER'){
+        return null;
+    }
+    return await prisma.project.delete({
+            where:{
+                id: projectId
+            }
+        })
+
+   
+}

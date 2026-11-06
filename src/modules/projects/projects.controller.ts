@@ -1,6 +1,6 @@
 import {Request, Response} from 'express'
 import {createProjectSchema, updateProjectSchema} from './projects.validation'
-import {createProject, listProjects, getProjectById, updateProject} from './projects.service'
+import {createProject, listProjects, getProjectById, updateProject, deleteProject} from './projects.service'
 
 export const createProjectController = async(req: Request, res: Response) =>{
 
@@ -98,6 +98,30 @@ export const updateProjectController = async(req: Request<{projectId: string}>, 
         return res.status(500).json({
             success: false,
             message: " internal server error"
+        })
+    }
+}
+
+export const  deleteProjectController = async (req: Request<{projectId: string}>, res: Response) => {
+    try{
+        const project = await deleteProject(req.params.projectId, req.user!.userId);
+        
+        if(!project){
+            return res.status(404).json({
+                success: false,
+                message: 'project not found or you may not have permission'
+            })
+        } 
+        return res.status(200).json({
+                success: true,
+                message: 'deleted successfully'
+            })
+
+
+    } catch(e){
+        return res.status(500).json({
+            success: false,
+            message: "internal server error"
         })
     }
 }
