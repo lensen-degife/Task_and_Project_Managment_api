@@ -37,6 +37,6 @@ app.get("/health/db", async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:projectId/tasks', taskRoutes);
-app.use('/api/project/:projectId/tasks/:taskId/comments', commentRoutes);
+app.use('/api/projects/:projectId/tasks/:taskId/comments', commentRoutes);
 
 export default app;
