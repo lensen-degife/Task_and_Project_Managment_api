@@ -5,6 +5,7 @@ import authRoutes from './modules/auth/auth.routes'
 import projectRoutes from './modules/projects/projects.routes'
 import taskRoutes from './modules/tasks/task.routes'
 import commentRoutes from './modules/comments/comment.routes'
+import memberRoutes from './modules/members/members.routes'
 
 const app = express();
 
@@ -38,5 +39,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:projectId/tasks', taskRoutes);
 app.use('/api/projects/:projectId/tasks/:taskId/comments', commentRoutes);
+app.use('/api/projects/:projectId', memberRoutes);
 
 export default app;
