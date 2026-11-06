@@ -186,3 +186,65 @@ export const updateProjectMemberRole = async (
 
     return { membership: updatedMember };
 };
+
+export const removeProjectMember = async (
+  projectId: string,
+  requesterId: string,
+  memberId: string
+) => {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+  });
+
+  if (!project) {
+    return { error: "PROJECT_NOT_FOUND" as const };
+  }
+  const requester = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: {
+        userId: requesterId,
+        projectId,
+      },
+    },
+  });
+
+  if (!requester) {
+    return { error: "NOT_PROJECT_MEMBER" as const };
+  }
+
+  const targetMember = await prisma.projectMember.findUnique({
+    where: {
+      userId_projectId: {
+        userId: memberId,
+        projectId,
+      },
+    },
+  });
+
+  if (!targetMember) {
+    return { error: "MEMBER_NOT_FOUND" as const };
+  }
+
+  if (targetMember.role === "OWNER") {
+    return { error: "CANNOT_REMOVE_OWNER" as const };
+  }
+
+  if (requester.role === "ADMIN" && targetMember.role !== "MEMBER") {
+    return { error: "INSUFFICIENT_PERMISSION" as const };
+  }
+
+  if (requester.role !== "OWNER" && requester.role !== "ADMIN") {
+    return { error: "INSUFFICIENT_PERMISSION" as const };
+  }
+
+  await prisma.projectMember.delete({
+    where: {
+      userId_projectId: {
+        userId: memberId,
+        projectId,
+      },
+    },
+  });
+
+  return { success: true };
+};

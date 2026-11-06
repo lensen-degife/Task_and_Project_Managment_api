@@ -1,6 +1,6 @@
 import {addMemberSchema, updateMemberRoleSchema} from './members.validation';
 import {Request, Response} from 'express';
-import {addProjectMember, getProjectMembers, updateProjectMemberRole} from './members.service'
+import {addProjectMember, getProjectMembers, updateProjectMemberRole, removeProjectMember} from './members.service'
 
 export const addProjectMemberController = async (
   req: Request<{projectId: string}>,
@@ -172,6 +172,65 @@ export const updateProjectMemberRoleController = async (
     });
   } catch (error) {
     console.error("Update member role error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+export const removeProjectMemberController = async (
+  req: Request<{projectId: string, memberId: string}>,
+  res: Response
+) => {
+  try {
+    const result = await removeProjectMember(
+      req.params.projectId,
+      req.user!.userId,
+      req.params.memberId
+    );
+
+    if ("error" in result) {
+      switch (result.error) {
+        case "PROJECT_NOT_FOUND":
+          return res.status(404).json({
+            success: false,
+            message: "Project not found",
+          });
+
+        case "NOT_PROJECT_MEMBER":
+          return res.status(403).json({
+            success: false,
+            message: "You are not a member of this project",
+          });
+
+        case "MEMBER_NOT_FOUND":
+          return res.status(404).json({
+            success: false,
+            message: "Project member not found",
+          });
+
+        case "CANNOT_REMOVE_OWNER":
+          return res.status(403).json({
+            success: false,
+            message: "The project owner cannot be removed",
+          });
+
+        case "INSUFFICIENT_PERMISSION":
+          return res.status(403).json({
+            success: false,
+            message: "You do not have permission to remove this member",
+          });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Project member removed successfully",
+    });
+  } catch (error) {
+    console.error("Remove project member error:", error);
 
     return res.status(500).json({
       success: false,
