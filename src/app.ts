@@ -10,6 +10,8 @@ import memberRoutes from './modules/members/members.routes'
 import { errorHandler } from './middleware/error.middleware'
 import { notFound } from './middleware/notFound.middleware'
 import { authLimiter } from './middleware/rate-limit.middleware';
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 const app = express();
 
@@ -52,6 +54,8 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:projectId/tasks', taskRoutes);
 app.use('/api/projects/:projectId/tasks/:taskId/comments', commentRoutes);
 app.use('/api/projects/:projectId', memberRoutes);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(notFound);
 
