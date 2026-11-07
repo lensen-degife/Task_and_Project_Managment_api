@@ -1,60 +1,20 @@
-import {addMemberSchema, updateMemberRoleSchema} from './members.validation';
-import {Request, Response} from 'express';
-import {addProjectMember, getProjectMembers, updateProjectMemberRole, removeProjectMember} from './members.service'
+import { addMemberSchema, updateMemberRoleSchema } from './members.validation';
+import { Request, Response, NextFunction } from 'express';
+import { addProjectMember, getProjectMembers, updateProjectMemberRole, removeProjectMember } from './members.service'
+import { AppError } from '../../utils/AppError'
 
 export const addProjectMemberController = async (
-  req: Request<{projectId: string}>,
-  res: Response
+  req: Request<{ projectId: string }>,
+  res: Response,
+  next: NextFunction
 ) => {
   try {
-    const validation = addMemberSchema.safeParse(req.body);
-
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        message: validation.error.issues[0].message,
-      });
-    }
 
     const result = await addProjectMember(
       req.params.projectId,
       req.user!.userId,
-      validation.data.email
+      req.body
     );
-
-    if ("error" in result) {
-      switch (result.error) {
-        case "PROJECT_NOT_FOUND":
-          return res.status(404).json({
-            success: false,
-            message: "Project not found",
-          });
-
-        case "NOT_PROJECT_MEMBER":
-          return res.status(403).json({
-            success: false,
-            message: "You are not a member of this project",
-          });
-
-        case "INSUFFICIENT_PERMISSION":
-          return res.status(403).json({
-            success: false,
-            message: "Only project owners and admins can add members",
-          });
-
-        case "USER_NOT_FOUND":
-          return res.status(404).json({
-            success: false,
-            message: "User with this email was not found",
-          });
-
-        case "ALREADY_MEMBER":
-          return res.status(409).json({
-            success: false,
-            message: "User is already a project member",
-          });
-      }
-    }
 
     return res.status(201).json({
       success: true,
@@ -62,18 +22,14 @@ export const addProjectMemberController = async (
       data: result.membership,
     });
   } catch (error) {
-    console.error("Add project member error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error)
   }
 };
 
 export const getProjectMembersController = async (
-  req: Request<{projectId: string}>,
-  res: Response
+  req: Request<{ projectId: string }>,
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const result = await getProjectMembers(
@@ -81,89 +37,28 @@ export const getProjectMembersController = async (
       req.user!.userId
     );
 
-    if ("error" in result) {
-      if (result.error === "PROJECT_NOT_FOUND") {
-        return res.status(404).json({
-          success: false,
-          message: "Project not found",
-        });
-      }
-
-      return res.status(403).json({
-        success: false,
-        message: "You are not a member of this project",
-      });
-    }
-
     return res.status(200).json({
       success: true,
       message: "Project members retrieved successfully",
       data: result.members,
     });
   } catch (error) {
-    console.error("Get project members error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
 export const updateProjectMemberRoleController = async (
-  req: Request<{projectId: string, memberId: string}>,
-  res: Response
+  req: Request<{ projectId: string, memberId: string }>,
+  res: Response,
+  next: NextFunction
 ) => {
   try {
-    const validation = updateMemberRoleSchema.safeParse(req.body);
-
-    if (!validation.success) {
-      return res.status(400).json({
-        success: false,
-        message: validation.error.issues[0].message,
-      });
-    }
-
     const result = await updateProjectMemberRole(
       req.params.projectId,
       req.user!.userId,
       req.params.memberId,
-      validation.data.role
+      req.body.role
     );
-
-    if ("error" in result) {
-      switch (result.error) {
-        case "PROJECT_NOT_FOUND":
-          return res.status(404).json({
-            success: false,
-            message: "Project not found",
-          });
-
-        case "NOT_PROJECT_MEMBER":
-          return res.status(403).json({
-            success: false,
-            message: "You are not a member of this project",
-          });
-
-        case "INSUFFICIENT_PERMISSION":
-          return res.status(403).json({
-            success: false,
-            message: "Only the project owner can change member roles",
-          });
-
-        case "MEMBER_NOT_FOUND":
-          return res.status(404).json({
-            success: false,
-            message: "Project member not found",
-          });
-
-        case "CANNOT_CHANGE_OWNER_ROLE":
-          return res.status(403).json({
-            success: false,
-            message: "The owner's role cannot be changed here",
-          });
-      }
-    }
 
     return res.status(200).json({
       success: true,
@@ -171,18 +66,14 @@ export const updateProjectMemberRoleController = async (
       data: result.membership,
     });
   } catch (error) {
-    console.error("Update member role error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };
 
 export const removeProjectMemberController = async (
-  req: Request<{projectId: string, memberId: string}>,
-  res: Response
+  req: Request<{ projectId: string, memberId: string }>,
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const result = await removeProjectMember(
@@ -191,50 +82,12 @@ export const removeProjectMemberController = async (
       req.params.memberId
     );
 
-    if ("error" in result) {
-      switch (result.error) {
-        case "PROJECT_NOT_FOUND":
-          return res.status(404).json({
-            success: false,
-            message: "Project not found",
-          });
-
-        case "NOT_PROJECT_MEMBER":
-          return res.status(403).json({
-            success: false,
-            message: "You are not a member of this project",
-          });
-
-        case "MEMBER_NOT_FOUND":
-          return res.status(404).json({
-            success: false,
-            message: "Project member not found",
-          });
-
-        case "CANNOT_REMOVE_OWNER":
-          return res.status(403).json({
-            success: false,
-            message: "The project owner cannot be removed",
-          });
-
-        case "INSUFFICIENT_PERMISSION":
-          return res.status(403).json({
-            success: false,
-            message: "You do not have permission to remove this member",
-          });
-      }
-    }
 
     return res.status(200).json({
       success: true,
       message: "Project member removed successfully",
     });
   } catch (error) {
-    console.error("Remove project member error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    next(error);
   }
 };

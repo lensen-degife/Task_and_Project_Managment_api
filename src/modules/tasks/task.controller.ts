@@ -63,6 +63,10 @@ export const deleteTaskController = async (req: Request<{ projectId: string, tas
             req.params.taskId,
             req.user!.userId,
         )
+        return res.status(200).json({
+            success: true,
+            message: "task deleted successfully"
+        })
 
     } catch (error) {
         next(error);

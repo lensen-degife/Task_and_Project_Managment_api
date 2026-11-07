@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma";
+import { AppError } from "../../utils/AppError"
 
 export const addProjectMember = async (
     projectId: string,
@@ -10,7 +11,7 @@ export const addProjectMember = async (
     });
 
     if (!project) {
-        return { error: "PROJECT_NOT_FOUND" as const };
+        throw new AppError("PROJECT_NOT_FOUND", 404)
     }
 
     const requesterMembership = await prisma.projectMember.findUnique({
@@ -23,14 +24,14 @@ export const addProjectMember = async (
     });
 
     if (!requesterMembership) {
-        return { error: "NOT_PROJECT_MEMBER" as const };
+        throw new AppError("NOT_PROJECT_MEMBER", 403)
     }
 
     if (
         requesterMembership.role !== "OWNER" &&
         requesterMembership.role !== "ADMIN"
     ) {
-        return { error: "INSUFFICIENT_PERMISSION" as const };
+        throw new AppError("INSUFFICIENT_PERMISSION", 403)
     }
 
     const user = await prisma.user.findUnique({
@@ -38,7 +39,7 @@ export const addProjectMember = async (
     });
 
     if (!user) {
-        return { error: "USER_NOT_FOUND" as const };
+        throw new AppError("USER_NOT_FOUND", 404)
     }
 
     const existingMembership = await prisma.projectMember.findUnique({
@@ -51,7 +52,7 @@ export const addProjectMember = async (
     });
 
     if (existingMembership) {
-        return { error: "ALREADY_MEMBER" as const };
+        throw new AppError("ALREADY_MEMBER", 409)
     }
 
     const membership = await prisma.projectMember.create({
@@ -83,7 +84,7 @@ export const getProjectMembers = async (
     });
 
     if (!project) {
-        return { error: "PROJECT_NOT_FOUND" as const };
+        throw new AppError("PROJECT_NOT_FOUND", 404)
     }
 
     const requesterMembership = await prisma.projectMember.findUnique({
@@ -96,7 +97,7 @@ export const getProjectMembers = async (
     });
 
     if (!requesterMembership) {
-        return { error: "NOT_PROJECT_MEMBER" as const };
+        throw new AppError("NOT_PROJECT_MEMBER", 403)
     }
 
     const members = await prisma.projectMember.findMany({
@@ -129,7 +130,7 @@ export const updateProjectMemberRole = async (
     });
 
     if (!project) {
-        return { error: "PROJECT_NOT_FOUND" as const };
+        throw new AppError("PROJECT_NOT_FOUND", 404)
     }
 
     const requester = await prisma.projectMember.findUnique({
@@ -142,11 +143,11 @@ export const updateProjectMemberRole = async (
     });
 
     if (!requester) {
-        return { error: "NOT_PROJECT_MEMBER" as const };
+        throw new AppError('NOT_PROJECT_MEMBER', 403)
     }
 
     if (requester.role !== "OWNER") {
-        return { error: "INSUFFICIENT_PERMISSION" as const };
+        throw new AppError('INSUFFICIENT_PERMISSION', 400)
     }
 
     const targetMember = await prisma.projectMember.findUnique({
@@ -159,11 +160,11 @@ export const updateProjectMemberRole = async (
     });
 
     if (!targetMember) {
-        return { error: "MEMBER_NOT_FOUND" as const };
+        throw new AppError('MEMBER_NOT_FOUND', 404)
     }
 
     if (targetMember.role === "OWNER") {
-        return { error: "CANNOT_CHANGE_OWNER_ROLE" as const };
+        throw new AppError("CANNOT_CHANGE_OWNER_ROLE", 403)
     }
     const updatedMember = await prisma.projectMember.update({
         where: {
@@ -188,63 +189,63 @@ export const updateProjectMemberRole = async (
 };
 
 export const removeProjectMember = async (
-  projectId: string,
-  requesterId: string,
-  memberId: string
+    projectId: string,
+    requesterId: string,
+    memberId: string
 ) => {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-  });
+    const project = await prisma.project.findUnique({
+        where: { id: projectId },
+    });
 
-  if (!project) {
-    return { error: "PROJECT_NOT_FOUND" as const };
-  }
-  const requester = await prisma.projectMember.findUnique({
-    where: {
-      userId_projectId: {
-        userId: requesterId,
-        projectId,
-      },
-    },
-  });
+    if (!project) {
+        throw new AppError('PROJECT_NOT_FOUND', 404)
+    }
+    const requester = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId: requesterId,
+                projectId,
+            },
+        },
+    });
 
-  if (!requester) {
-    return { error: "NOT_PROJECT_MEMBER" as const };
-  }
+    if (!requester) {
+        throw new AppError('NOT_PROJECT_MEMBER', 404)
+    }
 
-  const targetMember = await prisma.projectMember.findUnique({
-    where: {
-      userId_projectId: {
-        userId: memberId,
-        projectId,
-      },
-    },
-  });
+    const targetMember = await prisma.projectMember.findUnique({
+        where: {
+            userId_projectId: {
+                userId: memberId,
+                projectId,
+            },
+        },
+    });
 
-  if (!targetMember) {
-    return { error: "MEMBER_NOT_FOUND" as const };
-  }
+    if (!targetMember) {
+        throw new AppError("MEMBER_NOT_FOUND", 404)
+    }
 
-  if (targetMember.role === "OWNER") {
-    return { error: "CANNOT_REMOVE_OWNER" as const };
-  }
+    if (targetMember.role === "OWNER") {
+        throw new AppError('CANNOT_REMOVE_OWNER', 403)
+    }
 
-  if (requester.role === "ADMIN" && targetMember.role !== "MEMBER") {
-    return { error: "INSUFFICIENT_PERMISSION" as const };
-  }
+    if (requester.role === "ADMIN" && targetMember.role !== "MEMBER") {
+        throw new AppError('INSUFFICIENT_PERMISSION', 403)
+    }
 
-  if (requester.role !== "OWNER" && requester.role !== "ADMIN") {
-    return { error: "INSUFFICIENT_PERMISSION" as const };
-  }
+    if (requester.role !== "OWNER" && requester.role !== "ADMIN") {
+        throw new AppError('INSUFFICIENT_PERMISSION', 403)
+    }
 
-  await prisma.projectMember.delete({
-    where: {
-      userId_projectId: {
-        userId: memberId,
-        projectId,
-      },
-    },
-  });
+    await prisma.projectMember.delete({
+        where: {
+            userId_projectId: {
+                userId: memberId,
+                projectId,
+            },
+        },
+    });
 
-  return { success: true };
+    return { success: true };
 };
