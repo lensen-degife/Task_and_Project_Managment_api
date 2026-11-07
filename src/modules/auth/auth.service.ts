@@ -1,6 +1,7 @@
 import {prisma} from '../../config/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
+import { env } from "../../config/env";
 
 interface RegisterInput{
     name: string,
@@ -72,7 +73,7 @@ export const loginUser = async(data: LoginInput) =>{
             userId: user.id,
             email: user.email
         },
-        jwtSecret,
+        env.JWT_SECRET,
         {
             expiresIn: '1d'
         }
