@@ -1,20 +1,13 @@
-import {Request, Response} from 'express'
-import {createProjectSchema, updateProjectSchema} from './projects.validation'
-import {createProject, listProjects, getProjectById, updateProject, deleteProject} from './projects.service'
+import { Request, Response, NextFunction } from 'express'
+import { createProjectSchema, updateProjectSchema } from './projects.validation'
+import { createProject, listProjects, getProjectById, updateProject, deleteProject } from './projects.service'
+import { AppError } from '../../utils/AppError'
 
-export const createProjectController = async(req: Request, res: Response) =>{
+export const createProjectController = async (req: Request, res: Response, next: NextFunction) => {
 
-    try{
-        const validation = createProjectSchema.safeParse(req.body);
-        if(!validation.success){
-            return res.status(400).json({
-                success: false,
-                message: "validation failed"
-            })
-        }
-
+    try {
         const project = await createProject(
-            validation.data,
+            req.body,
             req.user!.userId
         )
         return res.status(200).json({
@@ -22,18 +15,14 @@ export const createProjectController = async(req: Request, res: Response) =>{
             message: 'project creation successful',
             data: project
         })
-    } catch(e){
-        console.log(e);
-        return res.status(500).json({
-            success: false,
-            message: 'internal server error'
-        })
+    } catch (e) {
+        next(e);
     }
 
 }
 
-export const listProjectsController = async (req: Request, res: Response) => {
-    try{
+export const listProjectsController = async (req: Request, res: Response, next: NextFunction) => {
+    try {
 
         const projects = await listProjects(req.user!.userId);
         return res.status(200).json({
@@ -42,86 +31,52 @@ export const listProjectsController = async (req: Request, res: Response) => {
             data: projects
         })
 
-    }catch(e){
-        return res.status(500).json({
-            success: false,
-            message: 'internal server error'
-        })
+    } catch (e) {
+        next(e);
     }
 }
 
-export const getProjectByIdController = async(req: Request<{projectId: string}>, res:Response) => {
-    
-    try{
+export const getProjectByIdController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
+
+    try {
         const project = await getProjectById(req.params.projectId, req.user!.userId);
-        if(!project){
-            return res.status(404).json({
-                success: false,
-                message: 'project not found'
-            });
-        
-        }
+
         return res.status(200).json({
             success: true,
             data: project
         });
-    } catch(e){
-        return res.status(500).json({
-            success: false,
-            message: 'internal server error'
-        })
+    } catch (e) {
+        next(e);
     }
 }
 
-export const updateProjectController = async(req: Request<{projectId: string}>, res: Response) => {
-    try{
-        const validation = updateProjectSchema.safeParse(req.body);
-        if(!validation.success){
-            return res.status(400).json({
-                success: false,
-                messasge: 'validation error'
-            })
-        }
-        const project = await updateProject(req.params.projectId, req.user!.userId, validation.data);
-        if(!project){
-            return res.status(404).json({
-                success: false,
-                message: 'project does not exist'
-            })
+export const updateProjectController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
+    try {
+        const project = await updateProject(req.params.projectId, req.user!.userId, req.body);
 
-        }
         return res.status(200).json({
             success: true,
             message: 'updated successfully',
         })
-    } catch(e){
-        return res.status(500).json({
-            success: false,
-            message: " internal server error"
-        })
+    } catch (e) {
+        next(e);
     }
 }
 
-export const  deleteProjectController = async (req: Request<{projectId: string}>, res: Response) => {
-    try{
+export const deleteProjectController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
+    try {
         const project = await deleteProject(req.params.projectId, req.user!.userId);
-        
-        if(!project){
-            return res.status(404).json({
-                success: false,
-                message: 'project not found or you may not have permission'
-            })
-        } 
+
+        if (!project) {
+            throw new AppError("PROJECT_NOT_FOUND", 404)
+        }
         return res.status(200).json({
-                success: true,
-                message: 'deleted successfully'
-            })
-
-
-    } catch(e){
-        return res.status(500).json({
-            success: false,
-            message: "internal server error"
+            success: true,
+            message: 'deleted successfully'
         })
+
+
+    } catch (e) {
+        next(e);
     }
 }

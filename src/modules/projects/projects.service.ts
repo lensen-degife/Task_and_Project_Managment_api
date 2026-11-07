@@ -1,5 +1,6 @@
 
 import { prisma } from "../../config/prisma"
+import { AppError } from "../../utils/AppError"
 
 interface CreateProjectInput {
     name: string,
@@ -79,7 +80,7 @@ export const listProjects = async (userId: string) => {
 }
 
 export const getProjectById = async (projectId: string, userId: string) => {
-    return await prisma.project.findFirst({
+    const project = await prisma.project.findFirst({
         where: {
             id: projectId,
             members: {
@@ -120,7 +121,12 @@ export const getProjectById = async (projectId: string, userId: string) => {
         },
 
     })
+    if (!project) {
+        throw new AppError("PROJECT_NOT_FOUND OR you are not a member", 404);
+    }
+    return project;
 }
+
 
 export const updateProject = async (projectId: string, userId: string, data: {
     name?: string,
@@ -128,26 +134,31 @@ export const updateProject = async (projectId: string, userId: string, data: {
 }) => {
     const membership = await prisma.projectMember.findUnique({
         where: {
-            userId_projectId:{
-                userId, 
+            userId_projectId: {
+                userId,
                 projectId
             }
         }
     })
-    if(!membership || membership.role !== 'OWNER' && membership.role !== 'ADMIN'){
-        return null;
+    if (!membership) {
+        throw new AppError("You are not a member of this project", 403);
     }
 
-    return await prisma.project.update({
-        where:{
+    if (membership.role !== "OWNER" && membership.role !== "ADMIN") {
+        throw new AppError("You do not have permission to update this project", 403);
+    }
+
+    const project = await prisma.project.update({
+        where: {
             id: projectId
         },
         data
     })
-  
+    return project;
+
 }
 
-export const deleteProject = async(projectId: string, userId: string) => {
+export const deleteProject = async (projectId: string, userId: string) => {
 
     const membership = await prisma.projectMember.findUnique({
         where: {
@@ -158,14 +169,14 @@ export const deleteProject = async(projectId: string, userId: string) => {
         }
 
     })
-    if(!membership || membership.role !== 'OWNER'){
+    if (!membership || membership.role !== 'OWNER') {
         return null;
     }
     return await prisma.project.delete({
-            where:{
-                id: projectId
-            }
-        })
+        where: {
+            id: projectId
+        }
+    })
 
-   
+
 }
