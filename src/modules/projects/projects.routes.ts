@@ -1,4 +1,4 @@
-import Router from 'express'
+import {Router} from 'express'
 import {
     createProjectController, listProjectsController, getProjectByIdController,
     updateProjectController, deleteProjectController
@@ -14,7 +14,7 @@ router.use(authenticate);
 router.post('/', validate(createProjectSchema), createProjectController);
 router.get('/', listProjectsController);
 router.get('/:projectId', getProjectByIdController);
-router.post('/:projectId', validate(updateProjectSchema), updateProjectController);
+router.patch('/:projectId', validate(updateProjectSchema), updateProjectController);
 router.delete('/:projectId', deleteProjectController);
 
 export default router;

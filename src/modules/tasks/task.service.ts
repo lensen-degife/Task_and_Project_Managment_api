@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma'
+import { AppError } from '../../utils/AppError'
 
 interface CreateTaskInput {
     title: string,
@@ -36,9 +37,7 @@ export const createTask = async (projectId: string, userId: string, data: Create
         }
     });
     if (!membership) {
-        return {
-            error: "NOT_PROJECT_MEMBER" as const,
-        }
+        throw new AppError("NOT_PROJECT_MEMBER", 403);
     }
     if (data.assigneeId) {
         const assigneeMembership = await prisma.projectMember.findUnique({
@@ -49,9 +48,7 @@ export const createTask = async (projectId: string, userId: string, data: Create
             }
         });
         if (!assigneeMembership) {
-            return {
-                error: "ASSIGNEE_NOT_PROJECT_MEMBER" as const,
-            };
+            throw new AppError("ASSIGNEE_NOT_PROJECT_MEMBER", 403)
         }
     }
 
@@ -94,7 +91,10 @@ export const getTasks = async (projectId: string, userId: string, filters: getTa
         }
     })
     if (!membership) {
-        return null;
+        throw new AppError(
+            "You are not a member of this project",
+            403
+        );
     }
     const where = {
         projectId,
@@ -153,9 +153,7 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
         }
     })
     if (!membership) {
-        return {
-            error: "NOT_PROJECT_MEMBER" as const,
-        }
+        throw new AppError("you are not member of the project", 403);
     }
     const existingProject = await prisma.task.findFirst({
         where: {
@@ -165,9 +163,7 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
         }
     })
     if (!existingProject) {
-        return {
-            error: "TASK_NOT_FOUND" as const,
-        }
+        throw new AppError("TASK_NOT_FOUND", 404);
     }
     if (data.assigneeId) {
         const assigneeMembership = await prisma.projectMember.findUnique({
@@ -180,9 +176,7 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
         });
 
         if (!assigneeMembership) {
-            return {
-                error: "ASSIGNEE_NOT_PROJECT_MEMBER" as const,
-            };
+            throw new AppError("ASSIGNEE_NOT_PROJECT_MEMBER", 403)
         }
     }
 
@@ -217,17 +211,12 @@ export const deleteTask = async (projectId: string, taskId: string, userId: stri
         }
     })
     if (!membership) {
-        return {
-            error: "NOT_PROJECT_MEMBER" as const,
-        }
-
+        throw new AppError("NOT_PROJECT_MEMBER", 403)
     }
     if (membership.role !== "OWNER" &&
         membership.role !== "ADMIN") {
-        return {
-            error: "INSUFFICIENT_PERMISSION" as const,
-        };
-    }
+            throw new AppError("INSUFFICIENT_PERMISSION", 403)
+        }
     const task = await prisma.task.findFirst({
         where: {
             id: taskId,
@@ -236,9 +225,7 @@ export const deleteTask = async (projectId: string, taskId: string, userId: stri
     });
 
     if (!task) {
-        return {
-            error: "TASK_NOT_FOUND" as const,
-        };
+        throw new AppError("TASK_NOT_FOUND", 404)
     }
 
     await prisma.task.delete({
