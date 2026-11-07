@@ -1,4 +1,5 @@
 import { prisma } from "../../config/prisma";
+import { AppError } from '../../utils/AppError'
 
 export const createComment = async (
     projectId: string,
@@ -16,9 +17,7 @@ export const createComment = async (
     });
 
     if (!membership) {
-        return {
-            error: "NOT_PROJECT_MEMBER" as const,
-        };
+        throw new AppError('NOT_PROJECT_MEMBER', 404)
     }
 
     const task = await prisma.task.findFirst({
@@ -29,9 +28,7 @@ export const createComment = async (
     });
 
     if (!task) {
-        return {
-            error: "TASK_NOT_FOUND" as const,
-        };
+        throw new AppError('TASK_NOT_FOUND', 404)
     }
 
     const comment = await prisma.comment.create({
@@ -64,9 +61,7 @@ export const getComments = async (projectId: string, taskId: string, userId: str
         }
     })
     if (!membership) {
-        return {
-            error: "NO_MEMBERSHIP" as const,
-        }
+        throw new AppError('NO_MEMBERSHIP', 403)
     }
     const task = await prisma.task.findFirst({
         where: {
@@ -75,9 +70,7 @@ export const getComments = async (projectId: string, taskId: string, userId: str
         }
     })
     if (!task) {
-        return {
-            error: "task_not_found" as const,
-        }
+        throw new AppError('task_not_found', 404)
     }
 
     const comments = await prisma.comment.findMany({
@@ -118,9 +111,7 @@ export const updateComment = async (
     });
 
     if (!membership) {
-        return {
-            error: "NOT_PROJECT_MEMBER" as const,
-        };
+        throw new AppError('NOT_PROJECT_MEMBER', 404)
     }
 
     const comment = await prisma.comment.findFirst({
@@ -134,15 +125,11 @@ export const updateComment = async (
     });
 
     if (!comment) {
-        return {
-            error: "COMMENT_NOT_FOUND" as const,
-        };
+        throw new AppError('COMMENT_NOT_FOUND', 404)
     }
 
     if (comment.authorId !== userId) {
-        return {
-            error: "NOT_COMMENT_AUTHOR" as const,
-        };
+        throw new AppError('NOT_COMMENT_AUTHOR', 403)
     }
 
     const updatedComment = await prisma.comment.update({
@@ -184,9 +171,7 @@ export const deleteComment = async (
     });
 
     if (!membership) {
-        return {
-            error: "NOT_PROJECT_MEMBER" as const,
-        };
+        throw new AppError('NOT_PROJECT_MEMBER', 404)
     }
 
     const comment = await prisma.comment.findFirst({
@@ -200,15 +185,11 @@ export const deleteComment = async (
     });
 
     if (!comment) {
-        return {
-            error: "COMMENT_NOT_FOUND" as const,
-        };
+        throw new AppError('COMMENT_NOT_FOUND', 404)
     }
 
     if (comment.authorId !== userId) {
-        return {
-            error: "NOT_COMMENT_AUTHOR" as const,
-        };
+        throw new AppError('NOT_COMMENT_AUTHOR', 403)
     }
 
     await prisma.comment.delete({
