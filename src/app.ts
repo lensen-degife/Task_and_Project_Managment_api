@@ -7,14 +7,22 @@ import projectRoutes from './modules/projects/projects.routes'
 import taskRoutes from './modules/tasks/task.routes'
 import commentRoutes from './modules/comments/comment.routes'
 import memberRoutes from './modules/members/members.routes'
-import {errorHandler} from './middleware/error.middleware'
-import {notFound} from './middleware/notFound.middleware'
+import { errorHandler } from './middleware/error.middleware'
+import { notFound } from './middleware/notFound.middleware'
+import { authLimiter } from './middleware/rate-limit.middleware';
 
 const app = express();
 
 app.use(cors());
 app.use(helmet());
 app.use(express.json());
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true
+  })
+);
 
 app.get("/health", (req, res) => {
   res.status(200).json({
@@ -39,7 +47,7 @@ app.get("/health/db", async (req, res) => {
   }
 });
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:projectId/tasks', taskRoutes);
 app.use('/api/projects/:projectId/tasks/:taskId/comments', commentRoutes);
