@@ -13,7 +13,7 @@ export const addProjectMemberController = async (
     const result = await addProjectMember(
       req.params.projectId,
       req.user!.userId,
-      req.body
+      req.body.email
     );
 
     return res.status(201).json({
