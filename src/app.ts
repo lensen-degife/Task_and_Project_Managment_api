@@ -1,4 +1,5 @@
 import { prisma } from "./config/prisma";
+import helmet from 'helmet'
 import express from "express";
 import cors from "cors";
 import authRoutes from './modules/auth/auth.routes'
@@ -12,6 +13,7 @@ import {notFound} from './middleware/notFound.middleware'
 const app = express();
 
 app.use(cors());
+app.use(helmet());
 app.use(express.json());
 
 app.get("/health", (req, res) => {
