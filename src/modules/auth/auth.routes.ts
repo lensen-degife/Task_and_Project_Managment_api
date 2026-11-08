@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { register, login, getMe } from './auth.controller'
 import { authenticate } from '../../middleware/auth.middleware'
+import {  registerSchema, loginSchema} from './auth.validation'
+import {validate} from '../../middleware/validate.middleware'
 
 const router = Router();
 /**
@@ -37,7 +39,7 @@ const router = Router();
  *       409:
  *         description: Email already exists
  */
-router.post('/register', register);
+router.post('/register', validate(registerSchema),register);
 /**
  * @swagger
  * /api/auth/login:
@@ -66,7 +68,7 @@ router.post('/register', register);
  *       401:
  *         description: Invalid credentials
  */
-router.post('/login', login)
+router.post('/login',validate(loginSchema), login)
 /**
  * @swagger
  * /api/auth/me:
