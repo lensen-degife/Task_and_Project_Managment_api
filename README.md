@@ -4,9 +4,9 @@ A RESTful Project Management API built with **Node.js, TypeScript, Express, Post
 
 ## Live Deployment
 
-- **API Base URL:** `https://project-managment-api-7bpk.onrender.com`
-- **Health Check:** `https://project-managment-api-7bpk.onrender.com/health`
-- **GitHub Repository:** `https://github.com/lensen-degife/project-managment-api`
+- **API Base URL:** [project-managment-api.onrender.com](https://project-managment-api-7bpk.onrender.com)
+- **Health Check:** [project-managment-api.onrender.com/health](https://project-managment-api-7bpk.onrender.com/health)
+- **GitHub Repository:** [github.com/lensen-degife/project-managment-api](https://github.com/lensen-degife project-managment-api)
 
 ## Features
 
@@ -101,7 +101,7 @@ project-managment-api/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/lensen-degife/project-managment-api
+git clone (https://github.com/lensen-degife/project-managment-api)
 cd project-managment-api
 ```
 
