@@ -33,7 +33,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/health/db", async (req, res) => {
+app.get("/health/db", async (req, res, next) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
 
@@ -42,10 +42,7 @@ app.get("/health/db", async (req, res) => {
       message: "Database connection successful",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Database connection failed",
-    });
+    next(error);
   }
 });
 
