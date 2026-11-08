@@ -46,6 +46,18 @@ app.get("/health/db", async (req, res, next) => {
   }
 });
 
+app.get('/projects', async (req, res, next) => {
+  try {
+    const data= await prisma.project.findMany({});
+
+    return res.json(data);
+
+  }
+  catch (e) {
+    next(e);
+  }
+})
+
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/projects/:projectId/tasks', taskRoutes);
