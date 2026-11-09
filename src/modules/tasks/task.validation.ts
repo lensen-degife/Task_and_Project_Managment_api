@@ -36,6 +36,8 @@ export const updateTaskSchema = z.object({
 
     description: z.string().max(2000).nullable().optional(),
 
+    version: z.number().int().nonnegative(),
+
     status: z.enum([
         "TODO",
         "IN_PROGRESS",

@@ -142,7 +142,7 @@ export const getTasks = async (projectId: string, userId: string, filters: getTa
     }
 }
 
-export const updateTask = async (projectId: string, taskId: string, userId: string, data: updateTaskInput) => {
+export const updateTask = async (projectId: string, taskId: string, userId: string, data: updateTaskInput, expectedVersion: number) => {
 
     const membership = await prisma.projectMember.findUnique({
         where: {
@@ -179,12 +179,42 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
             throw new AppError("ASSIGNEE_NOT_PROJECT_MEMBER", 403)
         }
     }
-
-    const updatedTask = await prisma.task.update({
+    const result = await prisma.task.updateMany({
         where: {
             id: taskId,
+            projectId,
+            version: expectedVersion
         },
-        data,
+        data: {
+            ...data,
+            version: {
+                increment: 1
+            }
+        }
+    })
+
+    if (result.count === 0) {
+        const taskStillExist = await prisma.task.findFirst({
+            where: {
+                id: taskId,
+                projectId
+            },
+            select: {
+                id: true
+            }
+        });
+        if (!taskStillExist) {
+            throw new AppError("Task_not_Found", 404);
+        }
+        throw new AppError("Task was modified by another user. Please refresh and try again.", 409);
+
+    }
+
+    const updatedTask = await prisma.task.findFirst({
+        where: {
+            id: taskId,
+            projectId
+        },
         include: {
             assignee: {
                 select: {
@@ -215,8 +245,8 @@ export const deleteTask = async (projectId: string, taskId: string, userId: stri
     }
     if (membership.role !== "OWNER" &&
         membership.role !== "ADMIN") {
-            throw new AppError("INSUFFICIENT_PERMISSION", 403)
-        }
+        throw new AppError("INSUFFICIENT_PERMISSION", 403)
+    }
     const task = await prisma.task.findFirst({
         where: {
             id: taskId,

@@ -37,12 +37,13 @@ export const getTasksController = async (req: Request<{ projectId: string }>, re
 
 export const updateTaskController = async (req: Request<{ projectId: string, taskId: string }>, res: Response, next: NextFunction) => {
     try {
-
+        const {version, ...data} = req.body;
         const result = await updateTask(
             req.params.projectId,
             req.params.taskId,
             req.user!.userId,
-            req.body
+            req.body,
+            version
         );
 
         return res.status(200).json({
