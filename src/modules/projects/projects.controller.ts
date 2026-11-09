@@ -66,10 +66,7 @@ export const updateProjectController = async (req: Request<{ projectId: string }
 export const deleteProjectController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
     try {
         const project = await deleteProject(req.params.projectId, req.user!.userId);
-
-        if (!project) {
-            throw new AppError("PROJECT_NOT_FOUND", 404)
-        }
+        
         return res.status(200).json({
             success: true,
             message: 'deleted successfully'

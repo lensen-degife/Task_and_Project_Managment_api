@@ -159,6 +159,14 @@ export const updateProject = async (projectId: string, userId: string, data: {
 }
 
 export const deleteProject = async (projectId: string, userId: string) => {
+    const project = await prisma.project.findUnique({
+        where: {
+            id: projectId
+        }
+    })
+    if (!project) {
+        throw new AppError("project not found", 404);
+    }
 
     const membership = await prisma.projectMember.findUnique({
         where: {
@@ -170,7 +178,7 @@ export const deleteProject = async (projectId: string, userId: string) => {
 
     })
     if (!membership || membership.role !== 'OWNER') {
-        return null;
+        throw new AppError('Not allowed to delete this project', 403);
     }
     return await prisma.project.delete({
         where: {
