@@ -171,7 +171,7 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
             throw new AppError("you can only update your own assigned tasks", 403);
         }
 
-        const allowedFields = ["status"];
+        const allowedFields = ["status", "version"];
 
         const invalidFields = Object.keys(data).filter(
             key => !allowedFields.includes(key)
