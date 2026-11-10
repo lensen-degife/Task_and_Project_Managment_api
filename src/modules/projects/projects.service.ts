@@ -131,8 +131,16 @@ export const getProjectById = async (projectId: string, userId: string) => {
 export const updateProject = async (projectId: string, userId: string, data: {
     name?: string,
     description?: string | null,
-
 }, expectedVersion: number) => {
+
+    const existingProject = await prisma.project.findUnique({
+        where: {
+            id: projectId
+        }
+    });
+    if (!existingProject) {
+        throw new AppError('PROJECT_NOT_FOUND', 404);
+    }
 
     const membership = await prisma.projectMember.findUnique({
         where: {
@@ -150,14 +158,7 @@ export const updateProject = async (projectId: string, userId: string, data: {
         throw new AppError("You do not have permission to update this project", 403);
     }
 
-    const existingProject = await prisma.project.findUnique({
-        where: {
-            id: projectId
-        }
-    });
-    if (!existingProject) {
-        throw new AppError('PROJECT_NOT_FOUND', 404);
-    }
+
     const result = await prisma.project.updateMany({
         where: {
             id: projectId,
