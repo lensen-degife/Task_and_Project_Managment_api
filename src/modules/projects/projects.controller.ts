@@ -52,7 +52,8 @@ export const getProjectByIdController = async (req: Request<{ projectId: string 
 
 export const updateProjectController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
     try {
-        const project = await updateProject(req.params.projectId, req.user!.userId, req.body);
+        const {version, ...data} = req.body;
+        const project = await updateProject(req.params.projectId, req.user!.userId, req.body, version);
 
         return res.status(200).json({
             success: true,

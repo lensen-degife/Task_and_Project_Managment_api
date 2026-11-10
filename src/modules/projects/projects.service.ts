@@ -130,8 +130,10 @@ export const getProjectById = async (projectId: string, userId: string) => {
 
 export const updateProject = async (projectId: string, userId: string, data: {
     name?: string,
-    description?: string | null
-}) => {
+    description?: string | null,
+
+}, expectedVersion: number) => {
+
     const membership = await prisma.projectMember.findUnique({
         where: {
             userId_projectId: {
@@ -144,19 +146,54 @@ export const updateProject = async (projectId: string, userId: string, data: {
         throw new AppError("You are not a member of this project", 403);
     }
 
-    if (membership.role !== "OWNER" && membership.role !== "ADMIN") {
+    if (["OWNER", "ADMIN"].includes(membership.role)) {
         throw new AppError("You do not have permission to update this project", 403);
     }
 
-    const project = await prisma.project.update({
+    const existingProject = await prisma.project.findUnique({
         where: {
             id: projectId
-        },
-        data
-    })
-    return project;
+        }
+    });
+    if (!existingProject) {
+        throw new AppError('PROJECT_NOT_FOUND', 404);
+    }
+    const result = await prisma.project.updateMany({
+        where: {
+            id: projectId,
+            version: expectedVersion
+        }
+        ,
+        data: {
+            ...data,
+            version: {
+                increment: 1
+            }
+        }
+    });
 
-}
+    if (result.count === 0) {
+        const projectStillExists = await prisma.project.findUnique({
+            where: { id: projectId },
+            select: { id: true }
+        });
+
+        if (!projectStillExists) {
+            throw new AppError("PROJECT_NOT_FOUND", 404);
+        }
+
+        throw new AppError(
+            "Project was modified by another user. Please refresh and try again.",
+            409
+        );
+    }
+    return await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+            members: true
+        }
+    });
+};
 
 export const deleteProject = async (projectId: string, userId: string) => {
     const project = await prisma.project.findUnique({

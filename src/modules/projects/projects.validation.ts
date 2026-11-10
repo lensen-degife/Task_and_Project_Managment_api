@@ -7,7 +7,8 @@ export const createProjectSchema = z.object({
 
 export const updateProjectSchema = z.object({
   name: z.string().min(2).max(100).optional(),
-  description: z.string().max(1000).nullable().optional()
+  description: z.string().max(1000).nullable().optional(),
+  version: z.number().int().nonnegative(),
 
 }).refine((data) => data.name !== undefined || data.description !== undefined ,{
     

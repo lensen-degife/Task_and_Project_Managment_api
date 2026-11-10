@@ -28,30 +28,31 @@ enum TaskPriority {
 }
 
 model User {
-  id           String          @id @default(uuid())
-  name         String
-  email        String          @unique
-  password     String
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  ownedProjects Project[]      @relation("ProjectOwner")
+  ownedProjects Project[]       @relation("ProjectOwner")
   memberships   ProjectMember[]
-  assignedTasks Task[]         @relation("TaskAssignee")
+  assignedTasks Task[]          @relation("TaskAssignee")
   comments      Comment[]
 }
 
 model Project {
-  id          String          @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  ownerId     String
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  version   Int      @default(0)
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id])
-  members     ProjectMember[]
-  tasks       Task[]
+  owner   User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members ProjectMember[]
+  tasks   Task[]
 }
 
 model ProjectMember {
@@ -61,8 +62,8 @@ model ProjectMember {
   role      ProjectRole @default(MEMBER)
   joinedAt  DateTime    @default(now())
 
-  user      User        @relation(fields: [userId], references: [id])
-  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId])
 }
@@ -80,9 +81,9 @@ model Task {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee    User?        @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  comments    Comment[]
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  comments Comment[]
 }
 
 model Comment {
@@ -92,6 +93,6 @@ model Comment {
   authorId  String
   createdAt DateTime @default(now())
 
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  author    User     @relation(fields: [authorId], references: [id])
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
 }
