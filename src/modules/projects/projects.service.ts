@@ -9,31 +9,40 @@ interface CreateProjectInput {
 
 export const createProject = async (data: CreateProjectInput, userId: string) => {
 
-    const project = await prisma.project.create({
-        data: {
-            name: data.name,
-            description: data.description,
-            ownerId: userId,
-            members: {
-                create: {
-                    userId: userId,
-                    role: "OWNER"
-                }
+    return await prisma.$transaction(async (tx) => {
+        const project = await tx.project.create({
+            data: {
+                name: data.name,
+                description: data.description,
+                ownerId: userId
             }
-        },
-        include: {
-            owner: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true
-                }
-            },
-            members: true
-        }
+        });
+        await tx.projectMember.create({
+            data: {
+                userId,
+                projectId: project.id,
+                role: "OWNER"
+            }
+        });
 
-    });
-    return project;
+        return await tx.project.findUnique({
+            where: {
+                id: project.id
+            },
+            include: {
+                owner: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    }
+                },
+                members: true
+            },
+
+        })
+
+    })
 }
 
 
