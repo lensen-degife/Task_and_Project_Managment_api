@@ -16,6 +16,6 @@ router.get('/', listProjectsController);
 router.get('/:projectId', getProjectByIdController);
 router.patch('/:projectId', validate(updateProjectSchema), updateProjectController);
 router.delete('/:projectId', deleteProjectController);
-router.patch('/:projectId/:transfer-ownership', validate(transferOwnershipSchema), transferOwnershipController);
+router.patch('/:projectId/transfer-ownership', validate(transferOwnershipSchema), transferOwnershipController);
 
 export default router;
