@@ -155,6 +155,7 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
     if (!membership) {
         throw new AppError("you are not member of the project", 403);
     }
+
     const existingProject = await prisma.task.findFirst({
         where: {
             id: taskId,
@@ -165,6 +166,25 @@ export const updateTask = async (projectId: string, taskId: string, userId: stri
     if (!existingProject) {
         throw new AppError("TASK_NOT_FOUND", 404);
     }
+    if (membership.role == "MEMBER") {
+        if (existingProject.assigneeId !== userId) {
+            throw new AppError("you can only update your own assigned tasks", 403);
+        }
+
+        const allowedFields = ["status"];
+
+        const invalidFields = Object.keys(data).filter(
+            key => !allowedFields.includes(key)
+        );
+
+        if (invalidFields.length > 0) {
+            throw new AppError(
+                "Members can only update task status",
+                403
+            );
+        }
+    }
+
     if (data.assigneeId) {
         const assigneeMembership = await prisma.projectMember.findUnique({
             where: {
