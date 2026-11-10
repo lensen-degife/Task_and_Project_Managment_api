@@ -146,7 +146,7 @@ export const updateProject = async (projectId: string, userId: string, data: {
         throw new AppError("You are not a member of this project", 403);
     }
 
-    if (["OWNER", "ADMIN"].includes(membership.role)) {
+    if (!["OWNER", "ADMIN"].includes(membership.role)) {
         throw new AppError("You do not have permission to update this project", 403);
     }
 
