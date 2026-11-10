@@ -78,10 +78,10 @@ export const deleteProjectController = async (req: Request<{ projectId: string }
     }
 }
 
-export const transferOwnershipController = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+export const transferOwnershipController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
     try {
         const { newOwnerId } = req.body;
-        const result = await transferOwnership(req.params.id, req.user!.userId, newOwnerId);
+        const result = await transferOwnership(req.params.projectId, req.user!.userId, newOwnerId);
 
         return res.status(200).json({
             success: true,
