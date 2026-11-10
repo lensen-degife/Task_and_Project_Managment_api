@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { createProjectSchema, updateProjectSchema } from './projects.validation'
-import { createProject, listProjects, getProjectById, updateProject, deleteProject } from './projects.service'
-import { AppError } from '../../utils/AppError'
+import { createProject, listProjects, getProjectById, updateProject, deleteProject, transferOwnership } from './projects.service'
+
 
 export const createProjectController = async (req: Request, res: Response, next: NextFunction) => {
 
@@ -52,7 +51,7 @@ export const getProjectByIdController = async (req: Request<{ projectId: string 
 
 export const updateProjectController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
     try {
-        const {version, ...data} = req.body;
+        const { version, ...data } = req.body;
         const project = await updateProject(req.params.projectId, req.user!.userId, req.body, version);
 
         return res.status(200).json({
@@ -67,12 +66,28 @@ export const updateProjectController = async (req: Request<{ projectId: string }
 export const deleteProjectController = async (req: Request<{ projectId: string }>, res: Response, next: NextFunction) => {
     try {
         const project = await deleteProject(req.params.projectId, req.user!.userId);
-        
+
         return res.status(200).json({
             success: true,
             message: 'deleted successfully'
         })
 
+
+    } catch (e) {
+        next(e);
+    }
+}
+
+export const transferOwnershipController = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+        const { newOwnerId } = req.body;
+        const result = await transferOwnership(req.params.id, req.user!.userId, newOwnerId);
+
+        return res.status(200).json({
+            success: true,
+            message: "project ownership transfer successful",
+            data: result
+        })
 
     } catch (e) {
         next(e);

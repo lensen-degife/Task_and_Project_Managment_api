@@ -235,3 +235,69 @@ export const deleteProject = async (projectId: string, userId: string) => {
 
 
 }
+
+export const transferOwnership = async (projectId: string, currentOwnerId: string, newOwnerId: string) => {
+    return await prisma.$transaction(async (tx) => {
+        const project = await tx.project.findUnique({
+            where: {
+                id: projectId
+            }
+
+        });
+        if (!project) {
+            throw new AppError("PROJECT_NOT_FOUND", 404);
+        }
+
+        if (project.ownerId !== currentOwnerId) {
+            throw new AppError("only the project owner can transfer the ownereship", 403);
+        }
+
+        const newOwnerMembership = await tx.projectMember.findUnique({
+            where: {
+                id: newOwnerId,
+            }
+        });
+        if (!newOwnerMembership) {
+            throw new AppError("NEW_OWNER_NOT_PROJECT_MEMBER", 400)
+        }
+
+        if (newOwnerId == currentOwnerId) {
+            throw new AppError('you are already the project owner', 400);
+        }
+
+        await tx.projectMember.update({
+            where: {
+                userId_projectId: {
+                    userId: currentOwnerId,
+                    projectId
+                }
+
+            },
+            data: {
+                role: "ADMIN"
+            }
+        })
+        await tx.projectMember.update({
+            where: {
+                userId_projectId: {
+                    userId: newOwnerId,
+                    projectId
+                }
+            },
+            data: {
+                role: "OWNER"
+            }
+        })
+
+        return await tx.project.update({
+            where: {
+                id: projectId
+            },
+            data: {
+                ownerId: newOwnerId,
+                version: { increment: 1 }
+            }
+        })
+    })
+
+}

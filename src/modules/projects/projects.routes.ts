@@ -1,11 +1,11 @@
-import {Router} from 'express'
+import { Router } from 'express'
 import {
     createProjectController, listProjectsController, getProjectByIdController,
-    updateProjectController, deleteProjectController
+    updateProjectController, deleteProjectController, transferOwnershipController
 } from './projects.controller'
 import { authenticate } from '../../middleware/auth.middleware'
 import { validate } from "../../middleware/validate.middleware";
-import { createProjectSchema, updateProjectSchema } from "./projects.validation";
+import { createProjectSchema, updateProjectSchema, transferOwnershipSchema } from "./projects.validation";
 
 
 const router = Router();
@@ -16,5 +16,6 @@ router.get('/', listProjectsController);
 router.get('/:projectId', getProjectByIdController);
 router.patch('/:projectId', validate(updateProjectSchema), updateProjectController);
 router.delete('/:projectId', deleteProjectController);
+router.patch('/:projectId/:transfer-ownership', validate(transferOwnershipSchema), transferOwnershipController);
 
 export default router;
