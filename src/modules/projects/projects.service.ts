@@ -254,7 +254,10 @@ export const transferOwnership = async (projectId: string, currentOwnerId: strin
 
         const newOwnerMembership = await tx.projectMember.findUnique({
             where: {
-                id: newOwnerId,
+                userId_projectId: {
+                    userId: newOwnerId,
+                    projectId
+                }
             }
         });
         if (!newOwnerMembership) {
@@ -288,16 +291,25 @@ export const transferOwnership = async (projectId: string, currentOwnerId: strin
                 role: "OWNER"
             }
         })
-
-        return await tx.project.update({
+        const result = await tx.project.updateMany({
             where: {
-                id: projectId
+                id: projectId,
+                version: project.version
             },
             data: {
                 ownerId: newOwnerId,
                 version: { increment: 1 }
             }
-        })
+        });
+
+        if (result.count === 0) {
+            throw new AppError(
+                "Project was modified by another user. Please refresh and try again.",
+                409
+            );
+        }
+
+        return result;
     })
 
 }
