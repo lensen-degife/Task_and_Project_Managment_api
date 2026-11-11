@@ -191,6 +191,9 @@ export const updateProjectMemberRole = async (
         if (targetMember.role === "OWNER") {
             throw new AppError("CANNOT_CHANGE_OWNER_ROLE", 403)
         }
+        if(targetMember.role === role){
+            throw new AppError("Member already has this role", 409);
+        }
         const updatedMember = await tx.projectMember.update({
             where: {
                 id: targetMember.id
