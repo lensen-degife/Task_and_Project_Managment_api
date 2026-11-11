@@ -173,12 +173,14 @@ export const updateProjectMemberRole = async (
             throw new AppError('INSUFFICIENT_PERMISSION', 403)
         }
 
-        const targetMember = await tx.projectMember.findUnique({
+        const targetMember = await tx.projectMember.findFirst({
             where: {
-                userId_projectId: {
-                    userId: memberId,
-                    projectId,
-                },
+                projectId,
+                OR: [
+                    { id: memberId },
+                    { userId: memberId }
+                ]
+
             },
         });
 
@@ -191,10 +193,7 @@ export const updateProjectMemberRole = async (
         }
         const updatedMember = await tx.projectMember.update({
             where: {
-                userId_projectId: {
-                    userId: memberId,
-                    projectId,
-                },
+                id: targetMember.id
             },
             data: { role },
             include: {
@@ -252,12 +251,13 @@ export const removeProjectMember = async (
             throw new AppError('NOT_PROJECT_MEMBER', 403)
         }
 
-        const targetMember = await tx.projectMember.findUnique({
+        const targetMember = await tx.projectMember.findFirst({
             where: {
-                userId_projectId: {
-                    userId: memberId,
-                    projectId,
-                },
+                projectId,
+                OR: [
+                    { id: memberId },
+                    { userId: memberId }
+                ]
             },
             include: {
                 user: {
@@ -289,10 +289,7 @@ export const removeProjectMember = async (
 
         await tx.projectMember.delete({
             where: {
-                userId_projectId: {
-                    userId: memberId,
-                    projectId,
-                },
+                id: targetMember.id
             },
         });
 
