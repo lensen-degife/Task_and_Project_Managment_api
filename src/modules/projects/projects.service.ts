@@ -1,6 +1,7 @@
 
 import { prisma } from "../../config/prisma"
 import { AppError } from "../../utils/AppError"
+import { createAuditLog } from "../audit_logs/audit-log.service"
 
 interface CreateProjectInput {
     name: string,
@@ -24,23 +25,21 @@ export const createProject = async (data: CreateProjectInput, userId: string) =>
                 role: "OWNER"
             }
         });
+        await createAuditLog({
+            actorId: userId,
+            projectId: project.id,
+            action: "CREATE_PROJECT",
+            entityType: "PROJECT",
+            entityId: project.id,
+            details: {
+                name: project.name,
+                description: project.description
+            }
 
-        return await tx.project.findUnique({
-            where: {
-                id: project.id
-            },
-            include: {
-                owner: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                    }
-                },
-                members: true
-            },
 
-        })
+        }, tx)
+
+        return project;
 
     })
 }
@@ -142,97 +141,127 @@ export const updateProject = async (projectId: string, userId: string, data: {
     description?: string | null,
 }, expectedVersion: number) => {
 
-    const existingProject = await prisma.project.findUnique({
-        where: {
-            id: projectId
-        }
-    });
-    if (!existingProject) {
-        throw new AppError('PROJECT_NOT_FOUND', 404);
-    }
+    return await prisma.$transaction(async (tx) => {
 
-    const membership = await prisma.projectMember.findUnique({
-        where: {
-            userId_projectId: {
-                userId,
-                projectId
+        const existingProject = await tx.project.findUnique({
+            where: {
+                id: projectId
             }
-        }
-    })
-    if (!membership) {
-        throw new AppError("You are not a member of this project", 403);
-    }
-
-    if (!["OWNER", "ADMIN"].includes(membership.role)) {
-        throw new AppError("You do not have permission to update this project", 403);
-    }
-
-
-    const result = await prisma.project.updateMany({
-        where: {
-            id: projectId,
-            version: expectedVersion
-        }
-        ,
-        data: {
-            ...data,
-            version: {
-                increment: 1
-            }
-        }
-    });
-
-    if (result.count === 0) {
-        const projectStillExists = await prisma.project.findUnique({
-            where: { id: projectId },
-            select: { id: true }
         });
-
-        if (!projectStillExists) {
-            throw new AppError("PROJECT_NOT_FOUND", 404);
+        if (!existingProject) {
+            throw new AppError('PROJECT_NOT_FOUND', 404);
         }
 
-        throw new AppError(
-            "Project was modified by another user. Please refresh and try again.",
-            409
-        );
-    }
-    return await prisma.project.findUnique({
-        where: { id: projectId },
-        include: {
-            members: true
+        const membership = await tx.projectMember.findUnique({
+            where: {
+                userId_projectId: {
+                    userId,
+                    projectId
+                }
+            }
+        })
+        if (!membership) {
+            throw new AppError("You are not a member of this project", 403);
         }
-    });
+
+        if (!["OWNER", "ADMIN"].includes(membership.role)) {
+            throw new AppError("You do not have permission to update this project", 403);
+        }
+
+
+        const result = await tx.project.updateMany({
+            where: {
+                id: projectId,
+                version: expectedVersion
+            }
+            ,
+            data: {
+                ...data,
+                version: {
+                    increment: 1
+                }
+            }
+        });
+        await createAuditLog({
+            actorId: userId,
+            projectId,
+            action: "UPDATE_PROJECT",
+            entityType: "PROJECT",
+            entityId: projectId,
+            details: {
+                previousName: existingProject.name,
+                newName: data.name ?? existingProject.name,
+                previousDescription: existingProject.description,
+                newDescription: data.description ?? existingProject.description,
+            }
+        }, tx)
+        if (result.count === 0) {
+            const projectStillExists = await prisma.project.findUnique({
+                where: { id: projectId },
+                select: { id: true }
+            });
+
+            if (!projectStillExists) {
+                throw new AppError("PROJECT_NOT_FOUND", 404);
+            }
+
+            throw new AppError(
+                "Project was modified by another user. Please refresh and try again.",
+                409
+            );
+        }
+        return await tx.project.findUnique({
+            where: { id: projectId },
+            include: {
+                members: true
+            }
+        });
+    })
 };
 
 export const deleteProject = async (projectId: string, userId: string) => {
-    const project = await prisma.project.findUnique({
-        where: {
-            id: projectId
-        }
-    })
-    if (!project) {
-        throw new AppError("project not found", 404);
-    }
+    return prisma.$transaction(async (tx) => {
 
-    const membership = await prisma.projectMember.findUnique({
-        where: {
-            userId_projectId: {
-                userId,
-                projectId,
+
+        const project = await tx.project.findUnique({
+            where: {
+                id: projectId
             }
+        })
+        if (!project) {
+            throw new AppError("project not found", 404);
         }
 
-    })
-    if (!membership || membership.role !== 'OWNER') {
-        throw new AppError('Not allowed to delete this project', 403);
-    }
-    return await prisma.project.delete({
-        where: {
-            id: projectId
-        }
-    })
+        const membership = await tx.projectMember.findUnique({
+            where: {
+                userId_projectId: {
+                    userId,
+                    projectId,
+                }
+            }
 
+        })
+        if (!membership || membership.role !== 'OWNER') {
+            throw new AppError('Not allowed to delete this project', 403);
+        }
+        const result = await tx.project.delete({
+            where: {
+                id: projectId
+            }
+
+        })
+        await createAuditLog({
+            actorId: userId,
+            projectId,
+            action: "DELETE_PROJECT",
+            entityType: "PROJECT",
+            details: {
+                name: project.name,
+                description: project.description
+            }
+        }, tx)
+        return result;
+    })
 
 }
 
@@ -291,6 +320,17 @@ export const transferOwnership = async (projectId: string, currentOwnerId: strin
                 role: "OWNER"
             }
         })
+        await createAuditLog({
+            actorId: currentOwnerId,
+            projectId,
+            action: "TRANSFER_OWNERSHIP",
+            entityType: "PROJECT",
+            entityId: projectId,
+            details: {
+                previousOwnerId: currentOwnerId,
+                newOwnerId
+            }
+        }, tx);
         const result = await tx.project.updateMany({
             where: {
                 id: projectId,

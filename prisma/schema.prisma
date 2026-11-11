@@ -39,20 +39,22 @@ model User {
   memberships   ProjectMember[]
   assignedTasks Task[]          @relation("TaskAssignee")
   comments      Comment[]
+  auditLogs     AuditLog[]
 }
 
 model Project {
-  id          String  @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   description String?
-  version   Int      @default(0)
-  ownerId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  version     Int      @default(0)
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  owner   User            @relation("ProjectOwner", fields: [ownerId], references: [id])
-  members ProjectMember[]
-  tasks   Task[]
+  owner     User            @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members   ProjectMember[]
+  tasks     Task[]
+  auditLogs AuditLog[]
 }
 
 model ProjectMember {
@@ -95,4 +97,21 @@ model Comment {
 
   task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   author User @relation(fields: [authorId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  projectId  String?
+  action     String
+  entityType String
+  entityId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  actor   User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([actorId, createdAt])
 }

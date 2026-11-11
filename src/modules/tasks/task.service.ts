@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma'
 import { AppError } from '../../utils/AppError'
+import { createAuditLog } from '../audit_logs/audit-log.service'
 
 interface CreateTaskInput {
     title: string,
@@ -28,57 +29,72 @@ interface updateTaskInput {
 }
 export const createTask = async (projectId: string, userId: string, data: CreateTaskInput) => {
 
-    const membership = await prisma.projectMember.findUnique({
-        where: {
-            userId_projectId: {
-                userId,
-                projectId
-            }
-        }
-    });
-    if (!membership) {
-        throw new AppError("NOT_PROJECT_MEMBER", 403);
-    }
-    if (data.assigneeId) {
-        const assigneeMembership = await prisma.projectMember.findUnique({
+    return await prisma.$transaction(async (tx) => {
+        const membership = await tx.projectMember.findUnique({
             where: {
                 userId_projectId: {
-                    userId, projectId
+                    userId,
+                    projectId
                 }
             }
         });
-        if (!assigneeMembership) {
-            throw new AppError("ASSIGNEE_NOT_PROJECT_MEMBER", 403)
+        if (!membership) {
+            throw new AppError("NOT_PROJECT_MEMBER", 403);
         }
-    }
+        if (data.assigneeId) {
+            const assigneeMembership = await prisma.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId, projectId
+                    }
+                }
+            });
+            if (!assigneeMembership) {
+                throw new AppError("ASSIGNEE_NOT_PROJECT_MEMBER", 403)
+            }
+        }
 
-    const task = await prisma.task.create({
-        data: {
-            title: data.title,
-            description: data.description,
-            priority: data.priority ?? "MEDIUM",
-            projectId,
-            assigneeId: data.assigneeId ?? null,
-            dueDate: data.dueDate ?? null,
-        },
-        include: {
-            assignee: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
+        const task = await tx.task.create({
+            data: {
+                title: data.title,
+                description: data.description,
+                priority: data.priority ?? "MEDIUM",
+                projectId,
+                assigneeId: data.assigneeId ?? null,
+                dueDate: data.dueDate ?? null,
+            },
+            include: {
+                assignee: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+                project: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
                 },
             },
-            project: {
-                select: {
-                    id: true,
-                    name: true,
-                },
-            },
-        },
-    });
+        });
+        await createAuditLog({
+            actorId: userId,
+            projectId: task.projectId,
+            action: "CREATE_TASK",
+            entityType: "TASK",
+            entityId: task.id,
+            details: {
+                title: task.title,
+                priority: task.priority,
+                status: task.status
+            }
 
-    return { task };
+        }, tx);
+        return { task };
+    })
+
 };
 
 export const getTasks = async (projectId: string, userId: string, filters: getTasksFilters) => {
@@ -144,147 +160,178 @@ export const getTasks = async (projectId: string, userId: string, filters: getTa
 
 export const updateTask = async (projectId: string, taskId: string, userId: string, data: updateTaskInput, expectedVersion: number) => {
 
-    const membership = await prisma.projectMember.findUnique({
-        where: {
-            userId_projectId: {
-                userId,
-                projectId
-            }
-        }
-    })
-    if (!membership) {
-        throw new AppError("you are not member of the project", 403);
-    }
+    return await prisma.$transaction(async (tx) => {
 
-    const existingProject = await prisma.task.findFirst({
-        where: {
-            id: taskId,
-            projectId
 
-        }
-    })
-    if (!existingProject) {
-        throw new AppError("TASK_NOT_FOUND", 404);
-    }
-    if (membership.role == "MEMBER") {
-        if (existingProject.assigneeId !== userId) {
-            throw new AppError("you can only update your own assigned tasks", 403);
-        }
-
-        const allowedFields = ["status", "version"];
-
-        const invalidFields = Object.keys(data).filter(
-            key => !allowedFields.includes(key)
-        );
-
-        if (invalidFields.length > 0) {
-            throw new AppError(
-                "Members can only update task status",
-                403
-            );
-        }
-    }
-
-    if (data.assigneeId) {
-        const assigneeMembership = await prisma.projectMember.findUnique({
+        const membership = await tx.projectMember.findUnique({
             where: {
                 userId_projectId: {
-                    userId: data.assigneeId,
-                    projectId,
-                },
-            },
-        });
-
-        if (!assigneeMembership) {
-            throw new AppError("ASSIGNEE_NOT_PROJECT_MEMBER", 403)
+                    userId,
+                    projectId
+                }
+            }
+        })
+        if (!membership) {
+            throw new AppError("you are not member of the project", 403);
         }
-    }
-    const result = await prisma.task.updateMany({
-        where: {
-            id: taskId,
-            projectId,
-            version: expectedVersion
-        },
-        data: {
-            ...data,
-            version: {
-                increment: 1
+
+        const existingProject = await prisma.task.findFirst({
+            where: {
+                id: taskId,
+                projectId
+
+            }
+        })
+        if (!existingProject) {
+            throw new AppError("TASK_NOT_FOUND", 404);
+        }
+        if (membership.role == "MEMBER") {
+            if (existingProject.assigneeId !== userId) {
+                throw new AppError("you can only update your own assigned tasks", 403);
+            }
+
+            const allowedFields = ["status", "version"];
+
+            const invalidFields = Object.keys(data).filter(
+                key => !allowedFields.includes(key)
+            );
+
+            if (invalidFields.length > 0) {
+                throw new AppError(
+                    "Members can only update task status",
+                    403
+                );
             }
         }
-    })
 
-    if (result.count === 0) {
-        const taskStillExist = await prisma.task.findFirst({
+        if (data.assigneeId) {
+            const assigneeMembership = await prisma.projectMember.findUnique({
+                where: {
+                    userId_projectId: {
+                        userId: data.assigneeId,
+                        projectId,
+                    },
+                },
+            });
+
+            if (!assigneeMembership) {
+                throw new AppError("ASSIGNEE_NOT_PROJECT_MEMBER", 403)
+            }
+        }
+        const result = await tx.task.updateMany({
+            where: {
+                id: taskId,
+                projectId,
+                version: expectedVersion
+            },
+            data: {
+                ...data,
+                version: {
+                    increment: 1
+                }
+            }
+        })
+        await createAuditLog({
+            actorId: userId,
+            projectId,
+            action: "UPDATE_TASK",
+            entityType: "TASK",
+            entityId: taskId,
+            details: {
+                updatedFields: Object.keys(data)
+            }
+
+        }, tx)
+
+        if (result.count === 0) {
+            const taskStillExist = await prisma.task.findFirst({
+                where: {
+                    id: taskId,
+                    projectId
+                },
+                select: {
+                    id: true
+                }
+            });
+            if (!taskStillExist) {
+                throw new AppError("Task_not_Found", 404);
+            }
+            throw new AppError("Task was modified by another user. Please refresh and try again.", 409);
+
+        }
+
+        const updatedTask = await tx.task.findFirst({
             where: {
                 id: taskId,
                 projectId
             },
-            select: {
-                id: true
-            }
-        });
-        if (!taskStillExist) {
-            throw new AppError("Task_not_Found", 404);
-        }
-        throw new AppError("Task was modified by another user. Please refresh and try again.", 409);
-
-    }
-
-    const updatedTask = await prisma.task.findFirst({
-        where: {
-            id: taskId,
-            projectId
-        },
-        include: {
-            assignee: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
+            include: {
+                assignee: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
                 },
             },
-        },
-    });
+        });
 
-    return {
-        task: updatedTask,
-    };
+        return {
+            task: updatedTask,
+        };
+    })
 }
 
 export const deleteTask = async (projectId: string, taskId: string, userId: string) => {
-    const membership = await prisma.projectMember.findUnique({
-        where: {
-            userId_projectId: {
-                userId,
-                projectId
+    return await prisma.$transaction(async (tx) => {
+
+
+        const membership = await tx.projectMember.findUnique({
+            where: {
+                userId_projectId: {
+                    userId,
+                    projectId
+                }
             }
+        })
+        if (!membership) {
+            throw new AppError("NOT_PROJECT_MEMBER", 403)
         }
-    })
-    if (!membership) {
-        throw new AppError("NOT_PROJECT_MEMBER", 403)
-    }
-    if (membership.role !== "OWNER" &&
-        membership.role !== "ADMIN") {
-        throw new AppError("INSUFFICIENT_PERMISSION", 403)
-    }
-    const task = await prisma.task.findFirst({
-        where: {
-            id: taskId,
+        if (membership.role !== "OWNER" &&
+            membership.role !== "ADMIN") {
+            throw new AppError("INSUFFICIENT_PERMISSION", 403)
+        }
+        const task = await tx.task.findFirst({
+            where: {
+                id: taskId,
+                projectId,
+            },
+        });
+
+        if (!task) {
+            throw new AppError("TASK_NOT_FOUND", 404)
+        }
+
+        await tx.task.delete({
+            where: {
+                id: taskId,
+            },
+        });
+        await createAuditLog({
+            actorId: userId,
             projectId,
-        },
-    });
+            action: "DELETE_TASK",
+            entityType: "TASK",
+            entityId: taskId,
+            details: {
+                title: task.title,
+                status: task.status,
+                priority: task.priority
+            }
 
-    if (!task) {
-        throw new AppError("TASK_NOT_FOUND", 404)
-    }
-
-    await prisma.task.delete({
-        where: {
-            id: taskId,
-        },
-    });
-
-    return {
-        success: true,
-    };
+        }, tx)
+        return {
+            success: true,
+        };
+    })
 };
