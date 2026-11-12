@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import api from '../services/api'
+import { loginUser } from '../services/authService'
+import {useNavigate} from 'react-router-dom'
 
 function LoginPage() {
 
@@ -8,16 +9,24 @@ function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    const navigate = useNavigate();
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         setError('')
         setLoading(true)
         try {
-            const response = await api.post('/auth/login', { email, password })
+            const response = await loginUser({ email, password })
 
-            const payload = response.data.data ?? response.data
-            console.log('login response fields:', Object.keys(payload))
-           
+            const payload = response.data ?? response
+            const token = payload.token
+            if (!token) {
+                throw new Error('Access token was not returned')
+            }
+            sessionStorage.setItem('accessToken', token)
+            navigate('/dashboard')
+            alert(`Welcome, ${payload.user.name}!`)
+
 
         } catch (e) {
             setError('Login failed, please check your credentials');
@@ -42,16 +51,16 @@ function LoginPage() {
                     required
                 />
                 <label>Password</label>
-                <input 
-                id='password'
-                type="password"
-                placeholder='enter your password'
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
+                <input
+                    id='password'
+                    type="password"
+                    placeholder='enter your password'
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
                 />
-                {error &&  <p className="error-message">{error}</p>}
-                <button>{loading? "Signing in...":"Sign in"}</button>
+                {error && <p className="error-message">{error}</p>}
+                <button>{loading ? "Signing in..." : "Sign in"}</button>
             </form>
         </div>
     )
