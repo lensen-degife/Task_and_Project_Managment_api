@@ -39,7 +39,8 @@ export const createProject = async (data: CreateProjectInput, userId: string, id
             if (existing.response !== null) {
                 return {
                     statusCode: existing.statusCode ?? 201,
-                    body: existing.response
+                    body: existing.response,
+                    replayed: true
                 }
             }
             throw new AppError('Request is already being processed', 409)
