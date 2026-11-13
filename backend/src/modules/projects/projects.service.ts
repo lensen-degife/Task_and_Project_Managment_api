@@ -107,7 +107,8 @@ export const createProject = async (data: CreateProjectInput, userId: string, id
 
             return {
                 statusCode: 201,
-                body
+                body,
+                replayed: false
             }
 
         })
@@ -141,7 +142,8 @@ export const createProject = async (data: CreateProjectInput, userId: string, id
             if (record.response !== null) {
                 return {
                     statusCode: record.statusCode ?? 201,
-                    body: record.response
+                    body: record.response,
+                    replayed: true
                 };
             }
 

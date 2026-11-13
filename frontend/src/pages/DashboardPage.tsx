@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Project } from '../types/project'
 import { getProjects, createProject } from '../services/projectService'
 import type { FormEvent } from 'react'
@@ -13,6 +13,14 @@ function DashboardPage() {
     const [creating, setCreating] = useState(false)
     const [createError, setCreateError] = useState('');
 
+    const pendingCreateRef = useRef<{
+        key: string;
+        payload: {
+            name: string;
+            description: string;
+        };
+    } | null>(null);
+
     const handleCreateProject = async (
         event: FormEvent<HTMLFormElement>
     ) => {
@@ -20,11 +28,38 @@ function DashboardPage() {
 
         try {
             setCreating(true)
+            const payload = { name, description };
 
-            const newProject = await createProject({
-                name,
-                description,
-            })
+            let pending = pendingCreateRef.current;
+
+            if (
+                !pending ||
+                pending.payload.name !== payload.name ||
+                pending.payload.description !== payload.description
+            ) {
+                pending = {
+                    key: crypto.randomUUID(),
+                    payload
+                };
+
+                pendingCreateRef.current = pending;
+            } 
+            const result = await createProject(payload, pending.key);
+
+            console.log("First request:", result);
+
+            const retry = await createProject(payload, pending.key);
+
+            console.log("Retry request:", retry);
+
+            pendingCreateRef.current = null;
+
+            if (result.replayed) {
+                console.log('This request was already processed.');
+            } else {
+                console.log('New project created successfully.');
+            }
+            const newProject = result.project
 
             setProjects((previousProjects) => [
                 newProject,

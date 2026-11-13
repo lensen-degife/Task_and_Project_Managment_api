@@ -6,7 +6,7 @@ export interface Project {
   updatedAt: string
 }
 
-export interface createProjectInput {
+export interface CreateProjectInput {
   name: string,
   description?: string
 }

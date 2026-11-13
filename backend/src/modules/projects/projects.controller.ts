@@ -14,6 +14,9 @@ export const createProjectController = async (req: Request, res: Response, next:
             }
 
         )
+        console.log("Idempotency replayed:", project.replayed);
+        res.setHeader('Idempotency-Replayed', String(project.replayed));
+
         return res.status(project.statusCode).json(project.body)
     } catch (e) {
         next(e);
