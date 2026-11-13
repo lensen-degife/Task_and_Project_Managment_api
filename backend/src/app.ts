@@ -16,7 +16,7 @@ import { swaggerSpec } from "./config/swagger";
 const app = express();
 
 app.use(cors({
-  origin: 'YOUR_FRONTEND_ORIGIN',
+  origin: 'http://localhost:5173',
   exposedHeaders: ['Idempotency-Replayed']
 }));
 app.use(helmet());
