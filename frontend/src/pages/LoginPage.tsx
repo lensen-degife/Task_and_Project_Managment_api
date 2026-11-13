@@ -25,7 +25,6 @@ function LoginPage() {
             }
             sessionStorage.setItem('accessToken', token)
             navigate('/dashboard')
-            alert(`Welcome, ${payload.user.name}!`)
 
 
         } catch (e) {
