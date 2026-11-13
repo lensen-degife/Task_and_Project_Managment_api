@@ -7,13 +7,14 @@ export const createProjectController = async (req: Request, res: Response, next:
     try {
         const project = await createProject(
             req.body,
-            req.user!.userId
+            req.user!.userId,
+            {
+                key: res.locals.idempotencyKey,
+                requestHash: res.locals.requestHash
+            }
+
         )
-        return res.status(200).json({
-            success: true,
-            message: 'project creation successful',
-            data: project
-        })
+        return res.status(project.statusCode).json(project.body)
     } catch (e) {
         next(e);
     }

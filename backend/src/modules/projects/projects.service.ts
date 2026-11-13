@@ -1,5 +1,6 @@
 
 import { prisma } from "../../config/prisma"
+import { Prisma } from "../../generated/prisma/client";
 import { AppError } from "../../utils/AppError"
 import { createAuditLog } from "../audit_logs/audit-log.service"
 
@@ -7,43 +8,153 @@ interface CreateProjectInput {
     name: string,
     description?: string
 }
-
-export const createProject = async (data: CreateProjectInput, userId: string) => {
-
-    return await prisma.$transaction(async (tx) => {
-        const project = await tx.project.create({
-            data: {
-                name: data.name,
-                description: data.description,
-                ownerId: userId
-            }
-        });
-        await tx.projectMember.create({
-            data: {
-                userId,
-                projectId: project.id,
-                role: "OWNER"
-            }
-        });
-        await createAuditLog({
-            actorId: userId,
-            projectId: project.id,
-            action: "CREATE_PROJECT",
-            entityType: "PROJECT",
-            entityId: project.id,
-            details: {
-                name: project.name,
-                description: project.description
-            }
-
-
-        }, tx)
-
-        return project;
-
-    })
+interface IdempotencyInput {
+    key: string,
+    requestHash: string
 }
 
+export const createProject = async (data: CreateProjectInput, userId: string, idempotency: IdempotencyInput) => {
+    const { key, requestHash } = idempotency;
+    try {
+
+        const existing = await prisma.idempotencyKey.findUnique(
+            {
+                where: {
+                    key_userId: {
+                        userId,
+                        key
+                    }
+                }
+            }
+
+        )
+
+        if (existing && existing.expiresAt > new Date()) {
+            if (existing.requestHash !== requestHash) {
+                throw new AppError(
+                    'Idempotency key reused with a different request',
+                    409
+                )
+            }
+            if (existing.response !== null) {
+                return {
+                    statusCode: existing.statusCode ?? 201,
+                    body: existing.response
+                }
+            }
+            throw new AppError('Request is already being processed', 409)
+        }
+        if (existing) {
+            await prisma.idempotencyKey.delete({
+                where: { id: existing.id }
+            })
+        }
+
+        return await prisma.$transaction(async (tx) => {
+
+            const idempotencyRecord = await tx.idempotencyKey.create({
+                data: {
+                    key,
+                    userId,
+                    requestHash,
+                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+                }
+            })
+
+            const project = await tx.project.create({
+                data: {
+                    name: data.name,
+                    description: data.description,
+                    ownerId: userId
+                }
+            });
+            await tx.projectMember.create({
+                data: {
+                    userId,
+                    projectId: project.id,
+                    role: "OWNER"
+                }
+            });
+            await createAuditLog({
+                actorId: userId,
+                projectId: project.id,
+                action: "CREATE_PROJECT",
+                entityType: "PROJECT",
+                entityId: project.id,
+                details: {
+                    name: project.name,
+                    description: project.description
+                }
+
+
+            }, tx)
+
+            const body = {
+                success: true,
+                message: 'project creation successful',
+                data: project
+            }
+
+            await tx.idempotencyKey.update({
+                where: {
+                    id: idempotencyRecord.id
+                },
+                data: {
+                    response: body,
+                    statusCode: 201
+                }
+            })
+
+            return {
+                statusCode: 201,
+                body
+            }
+
+        })
+    } catch (error) {
+
+
+        if (
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === 'P2002'
+        ) {
+            const record = await prisma.idempotencyKey.findUnique({
+                where: {
+                    key_userId: {
+                        key,
+                        userId
+                    }
+                }
+            });
+
+            if (!record) {
+                throw error;
+            }
+
+            if (record.requestHash !== requestHash) {
+                throw new AppError(
+                    'Idempotency key reused with a different request',
+                    409
+                );
+            }
+
+            if (record.response !== null) {
+                return {
+                    statusCode: record.statusCode ?? 201,
+                    body: record.response
+                };
+            }
+
+            throw new AppError(
+                'Request is already being processed',
+                409
+            );
+        }
+
+        throw error;
+
+    }
+}
 
 export const listProjects = async (userId: string) => {
     return await prisma.project.findMany({

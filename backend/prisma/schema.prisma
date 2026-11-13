@@ -115,3 +115,18 @@ model AuditLog {
   @@index([projectId, createdAt])
   @@index([actorId, createdAt])
 }
+
+
+model IdempotencyKey {
+  id          String   @id @default(uuid())
+  key         String
+  userId      String
+  requestHash String
+  response    Json?
+  statusCode  Int?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  @@unique([key, userId])
+  @@index([expiresAt])
+}
