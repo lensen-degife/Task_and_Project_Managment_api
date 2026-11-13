@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Project } from '../types/project'
 import { getProjects, createProject } from '../services/projectService'
 import type { FormEvent } from 'react'
@@ -12,6 +13,8 @@ function DashboardPage() {
     const [description, setDescription] = useState('')
     const [creating, setCreating] = useState(false)
     const [createError, setCreateError] = useState('');
+
+    const navigate = useNavigate();
 
     const pendingCreateRef = useRef<{
         key: string;
@@ -43,14 +46,9 @@ function DashboardPage() {
                 };
 
                 pendingCreateRef.current = pending;
-            } 
+            }
+
             const result = await createProject(payload, pending.key);
-
-            console.log("First request:", result);
-
-            const retry = await createProject(payload, pending.key);
-
-            console.log("Retry request:", retry);
 
             pendingCreateRef.current = null;
 
@@ -105,7 +103,7 @@ function DashboardPage() {
             {projects.length === 0 ? (
                 <p>you have not created any projects yet.</p>
             ) : (projects.map((project) => (
-                <div key={project.id}>
+                <div key={project.id} onClick={() => navigate(`/projects/${project.id}`)}>
                     <h2>{project.name}</h2>
                     <p>{project.description || 'no description'}</p>
                 </div>

@@ -22,3 +22,8 @@ export const createProject = async (
     replayed: response.headers['idempotency-replayed'] === 'true'
   };
 };
+
+export const getProjectById = async (projectId: string) => {
+  const response = await api.get(`/projects/${projectId}`);
+  return response.data.data
+}
