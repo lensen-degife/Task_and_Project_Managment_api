@@ -27,3 +27,8 @@ export const getProjectById = async (projectId: string) => {
   const response = await api.get(`/projects/${projectId}`);
   return response.data.data
 }
+
+export const getProjectMembers = async(projectId: string)=>{
+  const response = await api.get(`/projects/${projectId}/members`)
+  return response.data.data;
+}
