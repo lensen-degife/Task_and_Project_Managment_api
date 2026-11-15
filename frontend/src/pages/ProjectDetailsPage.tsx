@@ -30,24 +30,18 @@ import type {
 function ProjectDetailsPage() {
 
     const { projectId } = useParams<{ projectId: string }>();
-
     const navigate = useNavigate();
-
     const [project, setProject] = useState<Project | null>(null);
     const [tasks, setTasks] = useState<Task[]>([]);
     const [members, setMembers] = useState<ProjectMember[]>([]);
-
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
     const [newMemberEmail, setNewMemberEmail] = useState('');
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
-
     const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-
     const [editTaskForm, setEditTaskForm] = useState({
         title: '',
         description: '',
@@ -55,25 +49,21 @@ function ProjectDetailsPage() {
         assigneeId: '',
         dueDate: ''
     });
-
     const [pagination, setPagination] = useState<TaskPagination>({
         total: 0,
         page: 1,
         limit: 10,
         totalPages: 0
     });
-
     const [filters, setFilters] = useState({
         status: '',
         priority: '',
         assigneeId: ''
     });
-
     const [currentPage, setCurrentPage] = useState(1);
-
     const [loadingTasks, setLoadingTasks] = useState(false);
-
     const [taskRefresh, setTaskRefresh] = useState(0);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     useEffect(() => {
         if (!projectId) return;
@@ -460,7 +450,10 @@ function ProjectDetailsPage() {
                                 className="border rounded-xl p-4 flex flex-wrap justify-between gap-4"
                             >
                                 <div>
-                                    <h3 className="font-semibold">
+                                    <h3
+  onClick={() => setSelectedTask(task)}
+  className="cursor-pointer font-semibold hover:underline"
+>
                                         {task.title}
                                     </h3>
 
@@ -485,6 +478,46 @@ function ProjectDetailsPage() {
                                         <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
                                     )}
                                 </div>
+                                {selectedTask && (
+  <div className="mt-6 rounded-lg border p-5">
+    <div className="flex justify-between">
+      <h2 className="text-xl font-bold">
+        Task Details
+      </h2>
+
+      <button
+        onClick={() => setSelectedTask(null)}
+        className="text-red-500"
+      >
+        Close
+      </button>
+    </div>
+
+    <h3 className="mt-4 text-lg font-semibold">
+      {selectedTask.title}
+    </h3>
+
+    <p className="mt-2">
+      {selectedTask.description || 'No description provided.'}
+    </p>
+
+    <p className="mt-3">
+      Status: {selectedTask.status}
+    </p>
+
+    <p>
+      Priority: {selectedTask.priority}
+    </p>
+
+    <p>
+      Due date: {
+        selectedTask.dueDate
+          ? new Date(selectedTask.dueDate).toLocaleDateString()
+          : 'No due date'
+      }
+    </p>
+  </div>
+)}
                                 {editingTaskId === task.id && (
                                     <div className="mt-4 space-y-3 rounded-lg border p-4">
 
