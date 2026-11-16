@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { loginUser } from '../services/authService'
-import {useNavigate} from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { EyeOff, Eye } from 'lucide-react'
+import { BrandingPanel } from '../components/BrandingPanel';
 
 function LoginPage() {
 
@@ -8,13 +10,14 @@ function LoginPage() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        setError('')
         setLoading(true)
+        setError('');
         try {
             const response = await loginUser({ email, password })
 
@@ -36,33 +39,117 @@ function LoginPage() {
 
     }
     return (
-        <div className="login-container">
-            <form className='login-form' onSubmit={handleSubmit}>
-                <h1>Welcome back</h1>
-                <p>sign in to your project management account.</p>
-                <label htmlFor="email">Email</label>
-                <input
-                    id="email"
-                    type="email"
-                    placeholder="enter your email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    required
-                />
-                <label>Password</label>
-                <input
-                    id='password'
-                    type="password"
-                    placeholder='enter your password'
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                />
-                {error && <p className="error-message">{error}</p>}
-                <button>{loading ? "Signing in..." : "Sign in"}</button>
-            </form>
+        <div className="sub_body">
+            <div className="sub_sub_body">
+
+                <BrandingPanel />
+
+                <div className="flex items-center justify-center px-2 py-8 sm:px-8 lg:px-14">
+
+                    <div className="w-full max-w-md mx-auto">
+
+                        <div className="mb-6 sm:mb-8 text-left">
+                            <h2 className="title">
+                                Welcome Back!
+                            </h2>
+
+                            <p className="title_sub">
+                                Enter your credentials to access your workspace.
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+
+                            {/* EMAIL */}
+                            <div>
+                                <label
+                                    htmlFor="email"
+                                    className="field"
+                                >
+                                    Email<span className="req">*</span>
+                                </label>
+
+                                <input
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter your email address"
+                                    required
+                                    className="auth-input"
+                                />
+                            </div>
+
+                            {/* PASSWORD */}
+                            <div>
+                                <label
+                                    htmlFor="password"
+                                    className="field"
+                                >
+                                    Password<span className="req">*</span>
+                                </label>
+
+                                <div className="relative">
+                                    <input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="Enter your password"
+                                        required
+                                        className="auth-input"
+                                    />
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="toggle"
+                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    >
+                                        {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+                                    </button>
+                                </div>
+
+                                <div className="mt-2.5 sm:mt-3 text-right">
+                                    <Link
+                                        to="/forgot-password"
+                                        className="forgot"
+                                    >
+                                        Forgot your password?
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* ERROR */}
+                            {error && (
+                                <div className="error">
+                                    {error}
+                                </div>
+                            )}
+
+                            {/* LOGIN BUTTON */}
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="main_btn"
+                            >
+                                {loading ? 'Logging in...' : 'Log in'}
+                            </button>
+                        </form>
+                        <div className="mt-4 sm:mt-5">
+                            <Link
+                                to="/register"
+                                className="sub_btn"
+                            >
+                                Create an account
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    )
+    );
 
 
 }
