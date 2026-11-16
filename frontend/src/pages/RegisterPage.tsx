@@ -3,6 +3,7 @@ import { registerUser } from '../services/authService'
 import { useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import { BrandingPanel } from '../components/BrandingPanel'
+import { Eye, EyeOff } from 'lucide-react'
 
 function RegisterPage() {
     const [name, setName] = useState('')
@@ -198,7 +199,7 @@ function RegisterPage() {
                                         className="toggle"
                                         aria-label={showPassword ? 'Hide password' : 'Show password'}
                                     >
-                                        {showPassword ? 'Hide' : 'Show'}
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
                             </div>
@@ -228,7 +229,7 @@ function RegisterPage() {
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                         className="toggle" aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                                     >
-                                        {showConfirmPassword ? 'Hide' : 'Show'}
+                                        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
                                 </div>
                             </div>
@@ -251,9 +252,15 @@ function RegisterPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="main_btn"
+                                className="main_btn relative inline-flex items-center justify-center disabled:opacity-75 disabled:cursor-not-allowed"
                             >
-                                {loading ? 'Registering...' : 'Register'}
+                                {loading && (
+                                    <span
+                                        className="absolute h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                                        aria-hidden="true"
+                                    />
+                                )}
+                                <span className={loading ? 'invisible' : ''}>Register</span>
                             </button>
                         </form>
 

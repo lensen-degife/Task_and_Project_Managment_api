@@ -131,10 +131,17 @@ function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="main_btn"
+                                className="main_btn relative inline-flex items-center justify-center disabled:opacity-75 disabled:cursor-not-allowed"
                             >
-                                {loading ? 'Logging in...' : 'Log in'}
+                                {loading && (
+                                    <span
+                                        className="absolute h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                                        aria-hidden="true"
+                                    />
+                                )}
+                                <span className={loading ? 'invisible' : ''}>Log in</span>
                             </button>
+
                         </form>
                         <div className="mt-4 sm:mt-5">
                             <Link
