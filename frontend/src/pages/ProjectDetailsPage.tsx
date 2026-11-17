@@ -644,7 +644,7 @@ function ProjectDetailsPage() {
     }
 
     return (
-        <div className="min-h-screen flex-col bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-hidden">
+        <div className="min-h-screen flex-col bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-clip">
             {/* SIDEBAR */}
             <AppSidebar />
             <HeaderNav
@@ -674,7 +674,7 @@ function ProjectDetailsPage() {
                             <h1 className="mt-1 sm:mt-2 text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white truncate">
                                 {project.name}
                             </h1>
-                            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 break-words">
+                            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400 wrap-break-word">
                                 {project.description || 'No description provided.'}
                             </p>
                         </div>

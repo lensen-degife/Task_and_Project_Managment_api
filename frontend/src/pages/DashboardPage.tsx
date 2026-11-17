@@ -1,11 +1,12 @@
 
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import type { Project } from '../types/project'
 import { getProjects, createProject } from '../services/projectService'
 import type { FormEvent } from 'react'
 import { AppSidebar } from '../components/AppSidebar'
 import { HeaderNav } from '../components/HeaderNav'
+import SummaryCard from '../components/SummaryCard';
 
 function DashboardPage() {
     const [projects, setProjects] = useState<Project[]>([])
@@ -101,6 +102,15 @@ function DashboardPage() {
         project.name.toLowerCase().includes(search.toLowerCase())
     )
 
+    const recentProjects = [...filteredProjects]
+        .sort((a, b) => {
+            const dateA = new Date(a.updatedAt || a.createdAt).getTime();
+            const dateB = new Date(b.updatedAt || b.createdAt).getTime();
+
+            return dateB - dateA;
+        })
+        .slice(0, 4);
+
     return (
         <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-hidden">
             <AppSidebar />
@@ -132,12 +142,12 @@ function DashboardPage() {
                             </p>
                         </div>
 
-                        <button
-                            onClick={() => setShowCreateForm(previous => !previous)}
-                            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                        <Link
+                            to="/dashboard"
+                            className="w-full sm:w-auto text-center rounded-xl bg-[#071030] px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#f4f2f2] shadow-sm transition hover:bg-[#071030cb] active:scale-95 shrink-0"
                         >
                             + Create Project
-                        </button>
+                        </Link>
                     </div>
 
                     {/* ERROR */}
@@ -147,53 +157,23 @@ function DashboardPage() {
                         </div>
                     )}
 
-                    {/* SUMMARY CARDS */}
-                    <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
-                        <div className="rounded-2xl bg-white p-6 shadow-sm">
-                            <p className="text-sm text-gray-500">
-                                Total Projects
-                            </p>
-
-                            <h2 className="mt-3 text-3xl font-bold text-gray-900">
-                                {projects.length}
-                            </h2>
-
-                            <p className="mt-2 text-xs text-gray-400">
-                                Projects in your workspace
-                            </p>
-                        </div>
-
-                        <div className="rounded-2xl bg-white p-6 shadow-sm">
-                            <p className="text-sm text-gray-500">
-                                Project Workspace
-                            </p>
-
-                            <h2 className="mt-3 text-xl font-semibold text-gray-900">
-                                Stay Organized
-                            </h2>
-
-                            <p className="mt-2 text-xs text-gray-400">
-                                Keep your projects and tasks together.
-                            </p>
-                        </div>
-
-                        <div className="rounded-2xl bg-white p-6 shadow-sm">
-                            <p className="text-sm text-gray-500">
-                                Quick Action
-                            </p>
-
-                            <button
-                                onClick={() => setShowCreateForm(true)}
-                                className="mt-3 text-xl font-semibold text-blue-600 hover:text-blue-700"
-                            >
-                                + New Project
-                            </button>
-
-                            <p className="mt-2 text-xs text-gray-400">
-                                Start organizing a new project.
-                            </p>
-                        </div>
+                        <SummaryCard
+                            label="Total Projects"
+                            value={projects.length}
+                            description="All your projects"
+                        />
+                        <SummaryCard
+                            label="Projects Found"
+                            value={filteredProjects.length}
+                            description="Based on your search"
+                        />
+                        <SummaryCard
+                            label="Workspace"
+                            value="PlanWithMe"
+                            description="Your project management space"
+                        />
                     </section>
 
                     {/* CREATE PROJECT FORM */}
@@ -278,16 +258,16 @@ function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">
-                                    My Projects
+                                    Recent
                                 </h2>
 
                                 <p className="mt-1 text-sm text-gray-500">
-                                    Your project workspace
+                                    projects
                                 </p>
                             </div>
 
                             <span className="rounded-full bg-white px-4 py-2 text-sm text-gray-500">
-                                {filteredProjects.length} projects
+                                {recentProjects.length} recent projects
                             </span>
                         </div>
 
@@ -295,7 +275,7 @@ function DashboardPage() {
                             <div className="rounded-2xl bg-white p-10 text-center text-gray-500">
                                 Loading projects...
                             </div>
-                        ) : filteredProjects.length === 0 ? (
+                        ) : recentProjects.length === 0 ? (
                             <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
                                 <div className="text-4xl mb-3">▤</div>
 
@@ -322,7 +302,7 @@ function DashboardPage() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5">
-                                {filteredProjects.map((project, index) => (
+                                {recentProjects.map((project, index) => (
                                     <button
                                         key={project.id}
                                         onClick={() => navigate(`/projects/${project.id}`)}

@@ -99,7 +99,7 @@ export function HeaderNav({
     const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U'
 
     return (
-        <header className="sticky top-0 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4  bg-[#99alaf] px-4 py-3 sm:px-8 sm:py-4 shadow-xs dark:border-gray-800 dark:bg-gray-900 transition-colors">
+        <header className=" sticky top-0 z-30 flex border-b border-[#e8e4e4]  backdrop-blur-md   bg-[#eff3fff1] flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-4 py-3 sm:px-8 sm:py-4 dark:border-gray-800 dark:bg-gray-900 transition-colors">
 
             {/* TOP ROW ON MOBILE / LEFT SECTION */}
             <div className="flex items-center justify-between gap-2.5 w-full sm:w-auto">

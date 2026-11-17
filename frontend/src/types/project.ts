@@ -7,8 +7,6 @@ export interface Project {
   description: string | null
   version?: number
   ownerId?: string
-  createdAt: string
-  updatedAt: string
   owner?: {
     id: string
     name: string
