@@ -1,10 +1,11 @@
+
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Project } from '../types/project'
 import { getProjects, createProject } from '../services/projectService'
-import { HeaderNav } from '../components/HeaderNav'
-import { AppSidebar } from '../components/AppSidebar'
 import type { FormEvent } from 'react'
+import { AppSidebar } from '../components/AppSidebar'
+import { HeaderNav } from '../components/HeaderNav'
 
 function DashboardPage() {
     const [projects, setProjects] = useState<Project[]>([])
@@ -17,7 +18,6 @@ function DashboardPage() {
     const [createError, setCreateError] = useState('')
     const [search, setSearch] = useState('')
     const [showCreateForm, setShowCreateForm] = useState(false)
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     const navigate = useNavigate()
 
@@ -97,115 +97,100 @@ function DashboardPage() {
         }
     }
 
-    const normalizedQuery = search.trim().toLowerCase()
-
-    const filteredProjects = projects.filter(project => {
-        if (!normalizedQuery) return true
-
-        const matchesName = project.name.toLowerCase().includes(normalizedQuery)
-        const matchesDescription = (project.description || '')
-            .toLowerCase()
-            .includes(normalizedQuery)
-
-        return matchesName || matchesDescription
-    })
+    const filteredProjects = projects.filter(project =>
+        project.name.toLowerCase().includes(search.toLowerCase())
+    )
 
     return (
         <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-hidden">
-            {/* SIDEBAR (Desktop & Mobile Drawer) */}
-            <AppSidebar
-                mobileOpen={mobileMenuOpen}
-                onMobileClose={() => setMobileMenuOpen(false)}
-            />
-
+            <AppSidebar />
             {/* MAIN CONTENT */}
             <main className="min-w-0 flex-1 flex flex-col md:ml-64">
-                {/* TOP HEADER */}
+
                 <HeaderNav
                     searchQuery={search}
                     onSearchChange={setSearch}
-                    searchPlaceholder="Search projects by name or description..."
-                    onMenuClick={() => setMobileMenuOpen(true)}
+                    searchPlaceholder="Search..."
                 />
 
                 {/* DASHBOARD CONTENT */}
-                <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-7 flex-1 max-w-full">
+                <div className="p-5 sm:p-8 space-y-7">
+
                     {/* PAGE TITLE */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm text-gray-500">
                                 Dashboard / Overview
                             </p>
 
-                            <h1 className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                            <h1 className="mt-2 text-3xl font-bold text-gray-900">
                                 Project Dashboard
                             </h1>
 
-                            <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                            <p className="mt-1 text-sm text-gray-500">
                                 Manage and track all your projects in one place.
                             </p>
                         </div>
 
                         <button
-                            type="button"
                             onClick={() => setShowCreateForm(previous => !previous)}
-                            className="w-full sm:w-auto text-center rounded-xl bg-blue-600 px-5 py-2.5 sm:py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:scale-95 shrink-0"
+                            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
                         >
-                            {showCreateForm ? '✕ Close Form' : '+ Create Project'}
+                            + Create Project
                         </button>
                     </div>
 
                     {/* ERROR */}
                     {error && (
-                        <div className="rounded-xl bg-red-50 p-4 text-xs sm:text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+                        <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
                             {error}
                         </div>
                     )}
 
-                    {/* SUMMARY CARDS: 1 col on mobile, 2 on tablet, 3 on desktop */}
-                    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                        <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-xs dark:bg-gray-900 dark:border dark:border-gray-800">
-                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                    {/* SUMMARY CARDS */}
+                    <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+
+                        <div className="rounded-2xl bg-white p-6 shadow-sm">
+                            <p className="text-sm text-gray-500">
                                 Total Projects
                             </p>
 
-                            <h2 className="mt-2 sm:mt-3 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                            <h2 className="mt-3 text-3xl font-bold text-gray-900">
                                 {projects.length}
                             </h2>
 
-                            <p className="mt-1.5 sm:mt-2 text-xs text-gray-400 dark:text-gray-500">
+                            <p className="mt-2 text-xs text-gray-400">
                                 Projects in your workspace
                             </p>
                         </div>
 
-                        <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-xs dark:bg-gray-900 dark:border dark:border-gray-800">
-                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                        <div className="rounded-2xl bg-white p-6 shadow-sm">
+                            <p className="text-sm text-gray-500">
                                 Project Workspace
                             </p>
 
-                            <h2 className="mt-2 sm:mt-3 text-xl font-semibold text-gray-900 dark:text-white">
+                            <h2 className="mt-3 text-xl font-semibold text-gray-900">
                                 Stay Organized
                             </h2>
 
-                            <p className="mt-1.5 sm:mt-2 text-xs text-gray-400 dark:text-gray-500">
+                            <p className="mt-2 text-xs text-gray-400">
                                 Keep your projects and tasks together.
                             </p>
                         </div>
 
-                        <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-xs dark:bg-gray-900 dark:border dark:border-gray-800 md:col-span-2 lg:col-span-1">
-                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                        <div className="rounded-2xl bg-white p-6 shadow-sm">
+                            <p className="text-sm text-gray-500">
                                 Quick Action
                             </p>
 
                             <button
-                                type="button"
                                 onClick={() => setShowCreateForm(true)}
-                                className="mt-2 sm:mt-3 text-lg sm:text-xl font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 block text-left"
+                                className="mt-3 text-xl font-semibold text-blue-600 hover:text-blue-700"
                             >
                                 + New Project
                             </button>
 
-                            <p className="mt-1.5 sm:mt-2 text-xs text-gray-400 dark:text-gray-500">
+                            <p className="mt-2 text-xs text-gray-400">
                                 Start organizing a new project.
                             </p>
                         </div>
@@ -213,17 +198,15 @@ function DashboardPage() {
 
                     {/* CREATE PROJECT FORM */}
                     {showCreateForm && (
-                        <section className="rounded-2xl bg-white p-4 sm:p-6 shadow-xs dark:bg-gray-900 dark:border dark:border-gray-800">
-                            <div className="flex justify-between items-center mb-4 sm:mb-5">
-                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+                        <section className="rounded-2xl bg-white p-6 shadow-sm">
+                            <div className="flex justify-between items-center mb-5">
+                                <h2 className="text-xl font-semibold">
                                     Create a Project
                                 </h2>
 
                                 <button
-                                    type="button"
                                     onClick={() => setShowCreateForm(false)}
-                                    className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                                    aria-label="Close form"
+                                    className="text-gray-400 hover:text-gray-700"
                                 >
                                     ✕
                                 </button>
@@ -231,11 +214,11 @@ function DashboardPage() {
 
                             <form
                                 onSubmit={handleCreateProject}
-                                className="space-y-3.5 sm:space-y-4"
+                                className="space-y-4"
                             >
                                 <div>
-                                    <label className="mb-1.5 sm:mb-2 block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Project Name <span className="text-red-500">*</span>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                        Project Name
                                     </label>
 
                                     <input
@@ -244,12 +227,12 @@ function DashboardPage() {
                                         onChange={e => setName(e.target.value)}
                                         placeholder="Enter project name"
                                         required
-                                        className="w-full rounded-xl border border-gray-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-500/20"
+                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="mb-1.5 sm:mb-2 block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">
                                         Description
                                     </label>
 
@@ -258,31 +241,31 @@ function DashboardPage() {
                                         onChange={e => setDescription(e.target.value)}
                                         placeholder="Describe your project"
                                         rows={3}
-                                        className="w-full rounded-xl border border-gray-200 px-3.5 sm:px-4 py-2.5 sm:py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-blue-500/20"
+                                        className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />
                                 </div>
 
                                 {createError && (
-                                    <p className="text-xs sm:text-sm text-red-600 dark:text-red-400">
+                                    <p className="text-sm text-red-600">
                                         {createError}
                                     </p>
                                 )}
 
-                                <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-3 pt-1">
+                                <div className="flex gap-3">
                                     <button
-                                        type="button"
-                                        onClick={() => setShowCreateForm(false)}
-                                        className="w-full sm:w-auto text-center rounded-xl border border-gray-200 px-5 py-2.5 sm:py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 transition"
+                                        type="submit"
+                                        disabled={creating}
+                                        className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                                     >
-                                        Cancel
+                                        {creating ? 'Creating...' : 'Create Project'}
                                     </button>
 
                                     <button
-                                        type="submit"
-                                        disabled={creating || !name.trim()}
-                                        className="w-full sm:w-auto text-center rounded-xl bg-blue-600 px-5 py-2.5 sm:py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 transition"
+                                        type="button"
+                                        onClick={() => setShowCreateForm(false)}
+                                        className="rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
                                     >
-                                        {creating ? 'Creating...' : 'Create Project'}
+                                        Cancel
                                     </button>
                                 </div>
                             </form>
@@ -290,86 +273,85 @@ function DashboardPage() {
                     )}
 
                     {/* PROJECTS */}
-                    <section className="space-y-4 sm:space-y-5">
-                        <div className="flex items-center justify-between gap-3">
+                    <section className="space-y-5">
+
+                        <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                                <h2 className="text-xl font-bold text-gray-900">
                                     My Projects
                                 </h2>
 
-                                <p className="mt-0.5 sm:mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                                <p className="mt-1 text-sm text-gray-500">
                                     Your project workspace
                                 </p>
                             </div>
 
-                            <span className="rounded-full bg-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-500 shadow-xs dark:bg-gray-900 dark:text-gray-400 dark:border dark:border-gray-800">
-                                {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
+                            <span className="rounded-full bg-white px-4 py-2 text-sm text-gray-500">
+                                {filteredProjects.length} projects
                             </span>
                         </div>
 
                         {loading ? (
-                            <div className="rounded-2xl bg-white p-8 sm:p-10 text-center text-sm text-gray-500 shadow-xs dark:bg-gray-900 dark:text-gray-400 dark:border dark:border-gray-800">
+                            <div className="rounded-2xl bg-white p-10 text-center text-gray-500">
                                 Loading projects...
                             </div>
                         ) : filteredProjects.length === 0 ? (
-                            <div className="rounded-2xl bg-white p-6 sm:p-10 text-center shadow-xs dark:bg-gray-900 dark:border dark:border-gray-800">
-                                <div className="text-3xl sm:text-4xl mb-3">▤</div>
+                            <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
+                                <div className="text-4xl mb-3">▤</div>
 
-                                <h3 className="font-semibold text-gray-800 dark:text-gray-200 text-base sm:text-lg">
+                                <h3 className="font-semibold text-gray-800">
                                     {search
                                         ? 'No matching projects'
                                         : 'No projects yet'}
                                 </h3>
 
-                                <p className="mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                                <p className="mt-2 text-sm text-gray-500">
                                     {search
-                                        ? 'Try another search query.'
+                                        ? 'Try another search.'
                                         : 'Create your first project to get started.'}
                                 </p>
 
                                 {!search && (
                                     <button
-                                        type="button"
                                         onClick={() => setShowCreateForm(true)}
-                                        className="mt-4 sm:mt-5 rounded-xl bg-blue-600 px-5 py-2.5 sm:py-3 text-sm font-semibold text-white hover:bg-blue-700 transition"
+                                        className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
                                     >
                                         Create your first project
                                     </button>
                                 )}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-5">
                                 {filteredProjects.map((project, index) => (
                                     <button
                                         key={project.id}
-                                        type="button"
                                         onClick={() => navigate(`/projects/${project.id}`)}
-                                        className="group rounded-2xl bg-white p-5 sm:p-6 text-left shadow-xs transition hover:-translate-y-1 hover:shadow-md dark:bg-gray-900 dark:border dark:border-gray-800 w-full min-w-0"
+                                        className="group rounded-2xl bg-white p-6 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                                     >
                                         <div className="flex items-start justify-between gap-3">
-                                            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600 dark:bg-blue-900/40 dark:text-blue-400 shrink-0">
+                                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600">
                                                 {['▦', '◈', '▤', '◇'][index % 4]}
                                             </div>
 
-                                            <span className="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
+                                            <span className="text-gray-400 group-hover:text-blue-600">
                                                 ↗
                                             </span>
                                         </div>
 
-                                        <h3 className="mt-4 sm:mt-5 text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                                        <h3 className="mt-5 text-lg font-semibold text-gray-900">
                                             {project.name}
                                         </h3>
 
-                                        <p className="mt-2 min-h-10 text-xs sm:text-sm leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2 break-words">
+                                        <p className="mt-2 min-h-10 text-sm leading-relaxed text-gray-500">
                                             {project.description || 'No description provided.'}
                                         </p>
 
-                                        <div className="mt-5 sm:mt-6 flex items-center justify-between border-t border-gray-100 pt-3 sm:pt-4 dark:border-gray-800">
-                                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                                        <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+                                            <span className="text-xs text-gray-400">
                                                 Open project
                                             </span>
 
-                                            <span className="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
+                                            <span className="text-sm font-medium text-blue-600">
                                                 View details →
                                             </span>
                                         </div>
@@ -378,6 +360,7 @@ function DashboardPage() {
                             </div>
                         )}
                     </section>
+
                 </div>
             </main>
         </div>

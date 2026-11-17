@@ -14,7 +14,6 @@ export const registerUser = async (credentials: RegisterCredentials) => {
 }
 
 export const getCurrentUser = async (): Promise<AuthUser> => {
-  // Backend auth.routes.ts defines router.post('/me', authenticate, getMe)
   const response = await api.post('/auth/me')
   return response.data.data
 }

@@ -37,7 +37,6 @@ function ProjectDetailsPage() {
     const currentUser = getStoredUser()
 
     const [activeTab, setActiveTab] = useState<Tab>('overview')
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [project, setProject] = useState<Project | null>(null)
     const [tasks, setTasks] = useState<Task[]>([])
     const [members, setMembers] = useState<ProjectMember[]>([])
@@ -253,11 +252,11 @@ function ProjectDetailsPage() {
             setProject(prev =>
                 prev
                     ? {
-                          ...prev,
-                          name: trimmed,
-                          description: editProjectDescription.trim() || null,
-                          version: (prev.version ?? 0) + 1
-                      }
+                        ...prev,
+                        name: trimmed,
+                        description: editProjectDescription.trim() || null,
+                        version: (prev.version ?? 0) + 1
+                    }
                     : null
             )
 
@@ -645,36 +644,16 @@ function ProjectDetailsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-hidden">
+        <div className="min-h-screen flex-col bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-hidden">
             {/* SIDEBAR */}
-            <AppSidebar
-                mobileOpen={mobileMenuOpen}
-                onMobileClose={() => setMobileMenuOpen(false)}
-                extraLinks={[
-                    {
-                        label: 'Tasks',
-                        icon: '☷',
-                        active: activeTab === 'tasks',
-                        onClick: () => setActiveTab('tasks')
-                    },
-                    {
-                        label: 'Team Members',
-                        icon: '♙',
-                        active: activeTab === 'members',
-                        onClick: () => setActiveTab('members')
-                    }
-                ]}
+            <AppSidebar />
+            <HeaderNav
+                searchQuery={taskSearch}
+                onSearchChange={setTaskSearch}
+                searchPlaceholder={`Search tasks in ${project.name}...`}
             />
 
-            {/* MAIN CONTENT AREA */}
             <main className="min-w-0 flex-1 flex flex-col md:ml-64">
-                {/* TOP HEADER */}
-                <HeaderNav
-                    searchQuery={taskSearch}
-                    onSearchChange={setTaskSearch}
-                    searchPlaceholder={`Search tasks in ${project.name}...`}
-                    onMenuClick={() => setMobileMenuOpen(true)}
-                />
 
                 <div className="space-y-5 sm:space-y-6 p-4 sm:p-6 md:p-8 flex-1 max-w-full">
                     {/* BREADCRUMB & HEADER */}
@@ -819,11 +798,10 @@ function ProjectDetailsPage() {
                                 key={tab}
                                 type="button"
                                 onClick={() => setActiveTab(tab)}
-                                className={`border-b-2 px-1 pb-3 text-sm font-semibold capitalize transition whitespace-nowrap ${
-                                    activeTab === tab
-                                        ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                                        : 'border-transparent text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300'
-                                }`}
+                                className={`border-b-2 px-1 pb-3 text-sm font-semibold capitalize transition whitespace-nowrap ${activeTab === tab
+                                    ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+                                    : 'border-transparent text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-300'
+                                    }`}
                             >
                                 {tab === 'overview' ? 'Overview' : tab === 'tasks' ? `Tasks (${pagination.total})` : `Members (${members.length})`}
                             </button>
@@ -1147,11 +1125,10 @@ function ProjectDetailsPage() {
                                         return (
                                             <article
                                                 key={task.id}
-                                                className={`rounded-2xl border bg-white p-5 shadow-xs transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 ${
-                                                    selectedTask?.id === task.id
-                                                        ? 'ring-2 ring-blue-500/50 border-blue-500'
-                                                        : 'border-gray-100'
-                                                }`}
+                                                className={`rounded-2xl border bg-white p-5 shadow-xs transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 ${selectedTask?.id === task.id
+                                                    ? 'ring-2 ring-blue-500/50 border-blue-500'
+                                                    : 'border-gray-100'
+                                                    }`}
                                             >
                                                 <div className="flex flex-wrap items-start justify-between gap-4">
                                                     <div className="min-w-0 flex-1">

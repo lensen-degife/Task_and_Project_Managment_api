@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
 import { getStoredUser, logoutUser, getCurrentUser } from '../services/authService'
 import type { AuthUser } from '../types/auth'
+import { Search, X, SunMoon, Bell } from 'lucide-react'
 
 interface HeaderNavProps {
     searchQuery: string
@@ -98,8 +99,8 @@ export function HeaderNav({
     const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U'
 
     return (
-        <header className="sticky top-0 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-gray-100 bg-white px-4 py-3 sm:px-8 sm:py-4 shadow-xs dark:border-gray-800 dark:bg-gray-900 transition-colors">
-            
+        <header className="sticky top-0 z-20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4  bg-[#99alaf] px-4 py-3 sm:px-8 sm:py-4 shadow-xs dark:border-gray-800 dark:bg-gray-900 transition-colors">
+
             {/* TOP ROW ON MOBILE / LEFT SECTION */}
             <div className="flex items-center justify-between gap-2.5 w-full sm:w-auto">
                 <div className="flex items-center gap-2">
@@ -155,24 +156,35 @@ export function HeaderNav({
 
             {/* SEARCH FIELD */}
             <div className="relative w-full sm:flex-1 sm:max-w-md">
-                <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                    ⌕
-                </span>
+                <Search
+                    size={18}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                />
                 <input
-                    type="search"
+                    type="text"
                     value={searchQuery}
                     onChange={e => onSearchChange(e.target.value)}
                     placeholder={searchPlaceholder}
-                    className="w-full rounded-full bg-[#edf1fa] py-2 sm:py-2.5 pl-9 pr-9 text-xs sm:text-sm text-gray-800 outline-none transition focus:ring-2 focus:ring-blue-300 dark:bg-gray-800 dark:text-gray-100 dark:focus:ring-blue-500"
+                    className=" w-full rounded-lg border-b border-gray-300
+                                pl-11 pr-10 py-2.5 sm:py-3
+                                text-sm outline-none transition
+                                focus:border-b-2 focus:border-b-[#0a184399]
+                                
+                               "
                 />
                 {searchQuery && (
                     <button
                         type="button"
                         onClick={() => onSearchChange('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1"
                         aria-label="Clear search"
+                        className="absolute right-2.5 top-1/2
+                flex h-6 w-6 -translate-y-1/2
+                items-center justify-center rounded-full
+                text-gray-400 transition
+                hover:bg-gray-200 hover:text-gray-600
+                dark:hover:bg-gray-700 dark:hover:text-gray-200"
                     >
-                        ✕
+                        <X size={14} />
                     </button>
                 )}
             </div>
@@ -183,11 +195,11 @@ export function HeaderNav({
                 <button
                     type="button"
                     onClick={toggleTheme}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#edf1fa] text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d2d2d253] text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                     aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                     title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 >
-                    {theme === 'dark' ? '☀' : '☾'}
+                    {theme === 'dark' ? <SunMoon size={20} /> : <SunMoon size={20} />}
                 </button>
 
                 {/* NOTIFICATIONS DROPDOWN */}
@@ -198,11 +210,11 @@ export function HeaderNav({
                             setShowNotifications(prev => !prev)
                             setShowProfileMenu(false)
                         }}
-                        className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#edf1fa] text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[#d2d2d253] text-[#071030] transition hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                         aria-label="Notifications"
                         aria-expanded={showNotifications}
                     >
-                        <span>🔔</span>
+                        <Bell size={20} />
                         {unreadCount > 0 && (
                             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-xs">
                                 {unreadCount}
@@ -236,14 +248,13 @@ export function HeaderNav({
                                     notifications.map(item => (
                                         <div
                                             key={item.id}
-                                            className={`group relative rounded-xl p-3 text-left transition ${
-                                                item.read
-                                                    ? 'bg-gray-50 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400'
-                                                    : 'bg-blue-50/70 text-gray-800 font-medium dark:bg-blue-900/20 dark:text-gray-200'
-                                            }`}
+                                            className={`group relative rounded-xl p-3 text-left transition ${item.read
+                                                ? 'bg-gray-50 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400'
+                                                : 'bg-blue-50/70 text-gray-800 font-medium dark:bg-blue-900/20 dark:text-gray-200'
+                                                }`}
                                         >
                                             <div className="flex items-start justify-between gap-2">
-                                                <p className="text-xs leading-relaxed break-words">
+                                                <p className="text-xs leading-relaxed wrap-break">
                                                     {item.title}
                                                 </p>
                                                 <button
@@ -278,43 +289,20 @@ export function HeaderNav({
                         aria-label="User menu"
                         aria-expanded={showProfileMenu}
                     >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d2d2d253] font-semibold text-[#071030] dark:bg-blue-900 dark:text-blue-200">
                             {userInitial}
                         </div>
-                        <span className="hidden text-sm font-medium text-gray-700 dark:text-gray-200 lg:block max-w-[120px] truncate">
-                            {user?.name || 'My Account'}
-                        </span>
                     </button>
 
                     {showProfileMenu && (
                         <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white p-4 shadow-xl dark:border-gray-800 dark:bg-gray-900 z-50">
                             <div className="border-b border-gray-100 pb-3 dark:border-gray-800">
-                                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                                <p className="text-sm font-bold text-[#071030] dark:text-white truncate">
                                     {user?.name || 'User'}
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                     {user?.email || ''}
                                 </p>
-                            </div>
-
-                            <div className="mt-2 space-y-1">
-                                <Link
-                                    to="/dashboard"
-                                    onClick={() => setShowProfileMenu(false)}
-                                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
-                                >
-                                    <span>▦</span>
-                                    Dashboard
-                                </Link>
-
-                                <Link
-                                    to="/projects"
-                                    onClick={() => setShowProfileMenu(false)}
-                                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-800"
-                                >
-                                    <span>▣</span>
-                                    My Projects
-                                </Link>
                             </div>
 
                             <div className="mt-2 border-t border-gray-100 pt-2 dark:border-gray-800">

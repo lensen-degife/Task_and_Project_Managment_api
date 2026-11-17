@@ -15,7 +15,6 @@ function ProjectsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const navigate = useNavigate();
 
@@ -44,25 +43,14 @@ function ProjectsPage() {
 
     return (
         <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-hidden">
-            {/* SIDEBAR (Desktop & Mobile Drawer) */}
-            <AppSidebar
-                mobileOpen={mobileMenuOpen}
-                onMobileClose={() => setMobileMenuOpen(false)}
-            />
-
-            {/* MAIN CONTENT */}
+             <AppSidebar />
             <main className="min-w-0 flex-1 flex flex-col md:ml-64">
-                {/* TOP HEADER */}
                 <HeaderNav
                     searchQuery={search}
                     onSearchChange={setSearch}
-                    searchPlaceholder="Search projects..."
-                    onMenuClick={() => setMobileMenuOpen(true)}
+                    searchPlaceholder="Search..."
                 />
-
-                {/* PAGE CONTENT */}
                 <div className="space-y-6 sm:space-y-7 p-4 sm:p-6 md:p-8 flex-1 max-w-full">
-                    {/* BREADCRUMB & HEADER */}
                     <div>
                         <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                             Dashboard <span className="mx-1 sm:mx-2">›</span>
@@ -181,7 +169,7 @@ function ProjectsPage() {
                                             {project.name}
                                         </h3>
 
-                                        <p className="mt-2 min-h-10 text-xs sm:text-sm leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2 break-words">
+                                        <p className="mt-2 min-h-10 text-xs sm:text-sm leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2 wrap-break">
                                             {project.description || 'No description provided.'}
                                         </p>
 
