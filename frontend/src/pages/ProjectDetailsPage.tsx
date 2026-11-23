@@ -645,7 +645,7 @@ function ProjectDetailsPage() {
 
     return (
         <div className="min-h-screen flex-col bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-clip">
-            {/* SIDEBAR */}
+            
             <AppSidebar />
             <HeaderNav
                 searchQuery={taskSearch}

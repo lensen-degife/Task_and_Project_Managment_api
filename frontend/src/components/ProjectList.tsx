@@ -32,7 +32,7 @@ function ProjectList({
             </div>
 
             {loading ? (
-                <div className="rounded-2xl bg-white p-8 sm:p-10 text-center text-sm text-gray-500 shadow-xs dark:bg-gray-900 dark:text-gray-400 dark:border dark:border-gray-800">
+                <div className="rounded-2xl bg-[#99alaf] p-10 text-center text-[#071030]">
                     Loading projects...
                 </div>
             ) : error ? (
@@ -41,9 +41,8 @@ function ProjectList({
                 </div>
             ) : projects.length === 0 ? (
                 <div className="rounded-2xl bg-white p-6 sm:p-10 text-center shadow-xs dark:bg-gray-900 dark:border dark:border-gray-800">
-                    <div className="mb-3 text-3xl sm:text-4xl">📁</div>
 
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-semibold text-[#071030] dark:text-white">
                         {search ? 'No matching projects' : 'No projects yet'}
                     </h3>
 
