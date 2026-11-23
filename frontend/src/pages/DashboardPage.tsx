@@ -6,6 +6,7 @@ import { HeaderNav } from '../components/HeaderNav'
 import SummaryCard from '../components/SummaryCard';
 import ProjectCard from '../components/ProjectCard'
 import CreateProjectForm from '../components/CreateProjectForm'
+import { Loader2, FolderOpen } from 'lucide-react'
 
 function DashboardPage() {
     const [projects, setProjects] = useState<Project[]>([])
@@ -134,7 +135,7 @@ function DashboardPage() {
 
                         <button
                             onClick={() => setShowCreateForm(true)}
-                            className="w-full sm:w-auto text-center rounded-xl bg-[#071030] px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#f4f2f2] shadow-sm transition hover:bg-[#071030cb] active:scale-95 shrink-0"
+                            className="w-full sm:w-auto text-center rounded-xl bg-[#071030] px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#f4f2f2] shadow transition hover:bg-[#071030cb] active:scale-95 shrink-0"
                         >
                             + Create Project
                         </button>
@@ -142,7 +143,7 @@ function DashboardPage() {
 
                     {/* ERROR */}
                     {error && (
-                        <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
+                        <div className="error">
                             {error}
                         </div>
                     )}
@@ -180,18 +181,21 @@ function DashboardPage() {
                                 </p>
                             </div>
 
-                            <span className="rounded-full bg-[#99alaf] shadow px-4 py-2 text-sm text-[#071030]">
+                            <span className="rounded-full bg-[#99alaf] dark:border-gray-800 shadow px-4 py-2 text-sm text-[#071030]">
                                 {recentProjects.length} recent projects
                             </span>
                         </div>
 
                         {loading ? (
-                            <div className="rounded-2xl bg-[#99alaf] p-10 text-center text-[#071030]">
-                                Loading projects...
+                            <div className="flex flex-col items-center justify-center gap-3 rounded-2xl  p-10 text-center text-[#071030] dark:bg-slate-800/40 dark:text-slate-300">
+                                <Loader2 className="h-6 w-6 animate-spin text-[#637ef6] dark:text-blue-400" />
+                                <p className="text-sm font-medium">Loading projects...</p>
                             </div>
                         ) : recentProjects.length === 0 ? (
-                            <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
-                                <div className="text-4xl mb-3">▤</div>
+                            <div className="rounded-2xl p-10 text-center shadow-sm">
+                                <div className="mb-3 flex justify-center text-[#637ef6] dark:text-blue-400">
+                                    <FolderOpen className="h-10 w-10" strokeWidth={1.5} />
+                                </div>
 
                                 <h3 className="font-semibold text-gray-800">
                                     {search
@@ -206,11 +210,12 @@ function DashboardPage() {
                                 </p>
 
                                 {!search && (
+
                                     <button
                                         onClick={() => setShowCreateForm(true)}
-                                        className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+                                        className="w-80 text-center rounded-xl bg-[#071030] mt-2 px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#f4f2f2] shadow transition hover:bg-[#071030cb] active:scale-95 shrink-0"
                                     >
-                                        Create your first project
+                                        + Create Your First Project
                                     </button>
                                 )}
                             </div>

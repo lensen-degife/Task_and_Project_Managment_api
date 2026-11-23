@@ -14,7 +14,7 @@ function SummaryCard({
     className = ''
 }: SummaryCardProps) {
     return (
-        <div className={`rounded-2xl p-5 sm:p-6 shadow-xs dark:border dark:border-gray-800 bg-[#f1fbffe7] dark:bg-[#] ${className}`}>
+        <div className={`rounded-2xl p-5 sm:p-6  shadow dark:border dark:border-gray-800 bg-[#99alaf] dark:bg-[#] ${className}`}>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 {label}
             </p>
