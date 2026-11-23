@@ -624,7 +624,7 @@ function ProjectDetailsPage() {
 
 
     return (
-        <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-clip">
+        <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative ">
             <AppSidebar />
 
             <main className="min-w-0 flex-1 flex flex-col md:ml-64">

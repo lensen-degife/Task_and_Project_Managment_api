@@ -97,7 +97,7 @@ function DashboardPage() {
         .slice(0, 4);
 
     return (
-        <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-hidden">
+        <div className="min-h-screen bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative ">
             <AppSidebar />
             {/* MAIN CONTENT */}
             <main className="min-w-0 flex-1 flex flex-col md:ml-64">
