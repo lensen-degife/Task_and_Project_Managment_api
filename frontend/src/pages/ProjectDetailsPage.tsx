@@ -645,13 +645,14 @@ function ProjectDetailsPage() {
 
     return (
         <div className="min-h-screen flex-col bg-[#edf1fa] dark:bg-gray-950 flex transition-colors relative overflow-x-clip">
-            
-            <AppSidebar />
+           
             <HeaderNav
                 searchQuery={taskSearch}
                 onSearchChange={setTaskSearch}
                 searchPlaceholder={`Search tasks in ${project.name}...`}
             />
+            <AppSidebar />
+
 
             <main className="min-w-0 flex-1 flex flex-col md:ml-64">
 
