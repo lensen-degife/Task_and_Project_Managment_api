@@ -16,7 +16,7 @@ import { swaggerSpec } from "./config/swagger";
 const app = express();
 
 app.use(cors({
-  origin: ['http://localhost:5173','https://task-and-project-managment.vercel.app'],
+  origin: ['http://localhost:5173','https://task-and-project-managment-api.vercel.app/'],
   exposedHeaders: ['Idempotency-Replayed']
 }));
 app.use(helmet());
