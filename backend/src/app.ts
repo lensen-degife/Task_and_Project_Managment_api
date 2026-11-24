@@ -15,22 +15,26 @@ import { swaggerSpec } from "./config/swagger";
 
 const app = express();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://task-and-project-managment-api.vercel.app',
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL.replace(/\/$/, '')] : [])
+];
+
 app.use(cors({
-  origin: ['http://localhost:5173','https://task-and-project-managment-api.vercel.app/'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)                                                       
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
   exposedHeaders: ['Idempotency-Replayed']
 }));
+
 app.use(helmet());
 app.use(express.json());
-
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true
-  })
-);
-
-
-
 
 app.get(["/", "/health"], (req, res) => {
   res.status(200).json({
