@@ -192,7 +192,7 @@ function DashboardPage() {
                                 <p className="text-sm font-medium">Loading projects...</p>
                             </div>
                         ) : recentProjects.length === 0 ? (
-                            <div className="rounded-2xl p-10 text-center shadow-sm">
+                            <div className="rounded-2xl p-10 text-center shadow-sm justify-center items-center">
                                 <div className="mb-3 flex justify-center text-[#637ef6] dark:text-blue-400">
                                     <FolderOpen className="h-10 w-10" strokeWidth={1.5} />
                                 </div>
@@ -213,7 +213,7 @@ function DashboardPage() {
 
                                     <button
                                         onClick={() => setShowCreateForm(true)}
-                                        className="w-80 text-center rounded-xl bg-[#071030] mt-2 px-5 py-2.5 sm:py-3 text-sm font-semibold text-[#f4f2f2] shadow transition hover:bg-[#071030cb] active:scale-95 shrink-0"
+                                        className=" flex-center text-center rounded-xl bg-[#071030] mt-2 px-15 py-3 sm:py-3 text-sm font-semibold text-[#f4f2f2] shadow transition hover:bg-[#071030cb] active:scale-95 shrink-0"
                                     >
                                         + Create Your First Project
                                     </button>
