@@ -49,7 +49,8 @@ function CreateProjectForm({ onSubmit, onClose }: CreateProjectFormProps) {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="field">    Project Name
+                        <label className="field">    
+                            Project Name
                         </label>
 
                         <input
