@@ -759,7 +759,7 @@ function ProjectDetailsPage() {
                                             </div>
                                             <div className="h-2.5 overflow-hidden shadow rounded-full bg-[#99a1af3e] dark:bg-gray-800">
                                                 <div
-                                                    className="h-full rounded-full bg-orange-500 transition-all duration-300"
+                                                    className="h-full rounded-full bg-linear-to-r from-blue-600 to-emerald-500 transition-all duration-300"
                                                     style={{ width: `${progress}%` }}
                                                 />
                                             </div>
@@ -874,7 +874,7 @@ function ProjectDetailsPage() {
                                                 <div
                                                     className="flex h-36 w-36 items-center justify-center rounded-full"
                                                     style={{
-                                                        background: `conic-gradient(#2563eb ${progress}%, #e5e7eb ${progress}% 100%)`
+                                                        background: `conic-gradient(#2563eb 0%, #10b981 ${progress}%, #e5e7eb ${progress}% 100%)`
                                                     }}
                                                 >
                                                     <div className="flex h-28 w-28 flex-col items-center justify-center rounded-full bg-[#edf1fa] dark:bg-gray-900">
@@ -900,7 +900,7 @@ function ProjectDetailsPage() {
                                             </div>
                                         </section>
 
-                                        <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                                        <section className="rounded-2xl shadow-md p-6 dark:border-gray-800 dark:bg-gray-900">
                                             <div className="mb-4 flex items-center justify-between">
                                                 <h2 className="font-bold text-gray-900 dark:text-white">
                                                     Team
@@ -917,7 +917,7 @@ function ProjectDetailsPage() {
                                             <div className="space-y-3">
                                                 {members.slice(0, 4).map(member => (
                                                     <div key={member.id} className="flex items-center gap-3">
-                                                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                                                        <div className="flex h-9 w-9 items-center shadow-md justify-center rounded-full text-sm font-bold text-[#637ef6] dark:bg-blue-950/50 dark:text-blue-400">
                                                             {member.user.name.charAt(0).toUpperCase()}
                                                         </div>
                                                         <div className="min-w-0 flex-1">
@@ -1031,9 +1031,15 @@ function ProjectDetailsPage() {
                                                             <button
                                                                 type="submit"
                                                                 disabled={creatingTask || !title.trim()}
-                                                                className='max-w-30 main_btn'
+                                                                className='max-w-30 main_btn relative inline-flex items-center justify-center'
                                                             >
-                                                                {creatingTask ? 'Creating...' : '+ Add Task'}
+                                                                {creatingTask && (
+                                                                    <span
+                                                                        className="absolute h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                                                                        aria-hidden="true"
+                                                                    />
+                                                                )}
+                                                                <span className={creatingTask ? 'invisible' : ''}>Create Task </span>
                                                             </button>
                                                         </div>
                                                     </form>
@@ -1043,7 +1049,7 @@ function ProjectDetailsPage() {
                                     }
 
                                     {/* FILTERS SECTION */}
-                                    <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                                    <section className="flex flex-wrap items-center gap-3 rounded-2xl p-4 shadow-md dark:border-gray-800 dark:bg-gray-900">
                                         <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
                                             Filters:
                                         </span>
@@ -1054,7 +1060,7 @@ function ProjectDetailsPage() {
                                                 setFilters(f => ({ ...f, status: e.target.value }))
                                                 setCurrentPage(1)
                                             }}
-                                            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            className="rounded-xl shadow-md px-3 py-2 text-xs font-medium outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                         >
                                             <option value="">All statuses</option>
                                             <option value="TODO">To Do</option>
@@ -1069,7 +1075,7 @@ function ProjectDetailsPage() {
                                                 setFilters(f => ({ ...f, priority: e.target.value }))
                                                 setCurrentPage(1)
                                             }}
-                                            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            className="rounded-xl shadow-md px-3 py-2 text-xs font-medium outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                         >
                                             <option value="">All priorities</option>
                                             <option value="LOW">Low</option>
@@ -1084,7 +1090,7 @@ function ProjectDetailsPage() {
                                                 setFilters(f => ({ ...f, assigneeId: e.target.value }))
                                                 setCurrentPage(1)
                                             }}
-                                            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                                            className="rounded-xl shadow-md px-3 py-2 text-xs font-medium outline-none focus:border-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                                         >
                                             <option value="">All assignees</option>
                                             {members.map(member => (
@@ -1121,7 +1127,7 @@ function ProjectDetailsPage() {
                                         </div>
 
                                         {filteredTasks.length === 0 && !loadingTasks ? (
-                                            <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                                            <div className="rounded-2xl p-10 text-center shadow-md dark:border-gray-800 dark:bg-gray-900">
                                                 <p className="font-semibold text-gray-700 dark:text-gray-300">No tasks found</p>
                                                 <p className="mt-1 text-xs text-gray-400">
                                                     {taskSearch
@@ -1138,7 +1144,7 @@ function ProjectDetailsPage() {
                                                 return (
                                                     <article
                                                         key={task.id}
-                                                        className={`rounded-2xl border bg-white p-5 shadow-xs transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 ${selectedTask?.id === task.id
+                                                        className={`rounded-2xl  p-5 shadow-md transition hover:shadow-md dark:border-gray-800 dark:bg-gray-900 ${selectedTask?.id === task.id
                                                             ? 'ring-2 ring-blue-500/50 border-blue-500'
                                                             : 'border-gray-100'
                                                             }`}
@@ -1300,7 +1306,7 @@ function ProjectDetailsPage() {
                                         )}
 
                                         {/* PAGINATION CONTROLS */}
-                                        <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                                        <div className="flex items-center justify-between rounded-2xl p-4 shadow-md dark:border-gray-800 dark:bg-gray-900">
                                             <button
                                                 type="button"
                                                 disabled={currentPage <= 1}
@@ -1333,7 +1339,7 @@ function ProjectDetailsPage() {
                                                     <span className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
                                                         Selected Task
                                                     </span>
-                                                    <h3 className="mt-1 text-lg sm:text-xl font-bold text-gray-900 dark:text-white break-words">
+                                                    <h3 className="mt-1 text-lg sm:text-xl font-bold text-gray-900 dark:text-white wrap-break-word">
                                                         {selectedTask.title}
                                                     </h3>
                                                 </div>
@@ -1350,7 +1356,7 @@ function ProjectDetailsPage() {
                                                 </button>
                                             </div>
 
-                                            <p className="mt-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300 break-words">
+                                            <p className="mt-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300 wrap-break-word">
                                                 {selectedTask.description || 'No description provided.'}
                                             </p>
 
@@ -1367,7 +1373,7 @@ function ProjectDetailsPage() {
                                             </div>
 
                                             {/* COMMENTS */}
-                                            <div className="mt-6 border-t border-gray-100 dark:border-gray-800 pt-5">
+                                            <div className="z-50 fixed mt-6 border-t border-gray-100 dark:border-gray-800 pt-5">
                                                 <h4 className="font-bold text-gray-900 dark:text-white">
                                                     Comments ({comments.length})
                                                 </h4>
@@ -1486,7 +1492,7 @@ function ProjectDetailsPage() {
                             {activeTab === 'members' && (
                                 <div className="space-y-6">
                                     {canManageTasks && (
-                                        <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                                        <section className="rounded-2xl p-6 shadow-md dark:border-gray-800 dark:bg-gray-900">
                                             <h2 className="mb-4 font-bold text-gray-900 dark:text-white">
                                                 Add a Team Member
                                             </h2>
@@ -1512,12 +1518,12 @@ function ProjectDetailsPage() {
                                         </section>
                                     )}
 
-                                    <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xs dark:border-gray-800 dark:bg-gray-900">
+                                    <section className="rounded-2xl  p-6 shadow-md dark:border-gray-800 dark:bg-gray-900">
                                         <div className="mb-4 flex items-center justify-between">
                                             <h2 className="font-bold text-gray-900 dark:text-white">
                                                 Project Members
                                             </h2>
-                                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                                            <span className="rounded-full shadow-md px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                                                 {members.length} members
                                             </span>
                                         </div>
@@ -1529,7 +1535,7 @@ function ProjectDetailsPage() {
                                                     className="flex flex-wrap items-center justify-between gap-4 py-4"
                                                 >
                                                     <div className="flex items-center gap-3">
-                                                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+                                                        <div className="flex h-11 w-11 items-center justify-center rounded-full shadow-md font-bold text-[#637ef6] dark:bg-blue-950/50 dark:text-blue-400">
                                                             {member.user.name.charAt(0).toUpperCase()}
                                                         </div>
 
@@ -1548,7 +1554,7 @@ function ProjectDetailsPage() {
                                                             value={member.role}
                                                             disabled={member.role === 'OWNER' || !isOwner}
                                                             onChange={e => handleRoleChange(member, e.target.value as ProjectRole)}
-                                                            className="rounded-xl border border-gray-200 px-3 py-2 text-xs font-semibold outline-none focus:border-blue-500 disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-800/40"
+                                                            className="rounded-xl shadow-md px-3 py-2 text-xs font-semibold outline-none focus:border-blue-500 disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:disabled:bg-gray-800/40"
                                                         >
                                                             <option value="OWNER">Owner</option>
                                                             <option value="ADMIN">Admin</option>
